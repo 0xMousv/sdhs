@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حل الكويز - مدرسة السادات الثانوية بنين</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/take-quiz.css">
+</head>
+<body>
+
+    <!-- Header مع معلومات الكويز والمؤقت -->
+    <header class="quiz-header">
+        <div class="container header-content">
+            <div class="logo-area">
+                <img src="assets/logo.jpg" alt="شعار المدرسة" class="logo-img">
+                <div>
+                    <h1 class="school-name">مدرسة السادات الثانوية بنين</h1>
+                    <span class="quiz-badge">حل كويز</span>
+                </div>
+            </div>
+            
+            <div class="quiz-info-header">
+                <div class="timer-box" id="timerBox">
+                    <span class="timer-icon">⏱️</span>
+                    <div class="timer-info">
+                        <span class="timer-label">الوقت المتبقي</span>
+                        <span class="timer-value" id="timerDisplay">--:--</span>
+                    </div>
+                </div>
+                
+                <div class="progress-info">
+                    <span class="progress-label">التقدم</span>
+                    <span class="progress-value" id="progressText">0 / 0</span>
+                </div>
+                
+                <button id="submitQuizBtn" class="btn-submit-header">إرسال الإجابات</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- شريط التقدم -->
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-state">
+        <div class="spinner"></div>
+        <p>جاري تحميل الكويز...</p>
+    </div>
+
+    <!-- محتوى الكويز -->
+    <main class="quiz-main" id="quizMain" style="display: none;">
+        <div class="container">
+            <!-- معلومات الكويز -->
+            <div class="quiz-info-card">
+                <div class="quiz-info-content">
+                    <h2 class="quiz-title" id="quizTitle">عنوان الكويز</h2>
+                    <div class="quiz-meta">
+                        <span class="meta-item">
+                            <span class="meta-icon"></span>
+                            <span id="quizSubject">المادة</span>
+                        </span>
+                        <span class="meta-item">
+                            <span class="meta-icon">👨‍🏫</span>
+                            <span id="quizTeacher">المدرس</span>
+                        </span>
+                        <span class="meta-item">
+                            <span class="meta-icon">❓</span>
+                            <span id="quizQuestionsCount">0 أسئلة</span>
+                        </span>
+                        <span class="meta-item">
+                            <span class="meta-icon">⭐</span>
+                            <span id="quizXP">0 XP</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الأسئلة -->
+            <div class="questions-wrapper" id="questionsWrapper">
+                <!-- الأسئلة ستضاف هنا ديناميكياً -->
+            </div>
+
+            <!-- أزرار التنقل السفلية -->
+            <div class="quiz-navigation">
+                <button id="prevQuestionBtn" class="btn-nav btn-prev" disabled>
+                    <span>→</span>
+                    <span>السؤال السابق</span>
+                </button>
+                
+                <div class="question-dots" id="questionDots">
+                    <!-- نقاط الأسئلة -->
+                </div>
+                
+                <button id="nextQuestionBtn" class="btn-nav btn-next">
+                    <span>السؤال التالي</span>
+                    <span>←</span>
+                </button>
+            </div>
+
+            <!-- زر الإرسال النهائي -->
+            <div class="final-submit">
+                <button id="finalSubmitBtn" class="btn-final-submit">
+                    <span class="btn-icon">📤</span>
+                    <span>إرسال جميع الإجابات وإنهاء الكويز</span>
+                </button>
+                <p class="submit-warning">⚠️ لا يمكنك تغيير إجاباتك بعد الإرسال</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal النتيجة -->
+    <div id="resultModal" class="modal hidden">
+        <div class="modal-content modal-result">
+            <div class="result-header" id="resultHeader">
+                <div class="result-icon" id="resultIcon"></div>
+                <h2 class="result-title" id="resultTitle"></h2>
+                <p class="result-subtitle" id="resultSubtitle"></p>
+            </div>
+            
+            <div class="result-stats">
+                <div class="stat-box">
+                    <span class="stat-value" id="resultScore">0</span>
+                    <span class="stat-label">الدرجة</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value" id="resultPercentage">0%</span>
+                    <span class="stat-label">النسبة</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value" id="resultXP">0</span>
+                    <span class="stat-label">XP المكتسب</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value" id="resultCorrect">0</span>
+                    <span class="stat-label">إجابات صحيحة</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value" id="resultRank">-</span>
+                    <span class="stat-label">ترتيبك في الحل</span>
+                </div>
+            </div>
+
+            <div class="result-actions">
+                <button id="reviewAnswersBtn" class="btn-review">
+                    <span>📖</span>
+                    <span>مراجعة الإجابات والشرح</span>
+                </button>
+                <button id="backToDashboardBtn" class="btn-back">
+                    <span>🏠</span>
+                    <span>العودة للوحة التحكم</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal المراجعة -->
+    <div id="reviewModal" class="modal hidden">
+        <div class="modal-content modal-review">
+            <div class="modal-header">
+                <h3>📖 مراجعة الإجابات والشرح</h3>
+                <button class="modal-close" id="closeReviewModal">&times;</button>
+            </div>
+            <div class="review-content" id="reviewContent">
+                <!-- المراجعة ستضاف هنا -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal تأكيد الإرسال -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content modal-confirm">
+            <div class="confirm-icon">️</div>
+            <h3>تأكيد إرسال الكويز</h3>
+            <p id="confirmMessage">هل أنت متأكد من إرسال إجاباتك؟ لن تتمكن من تعديلها بعد ذلك.</p>
+            <div class="confirm-stats" id="confirmStats"></div>
+            <div class="confirm-actions">
+                <button id="cancelSubmitBtn" class="btn-cancel">إلغاء</button>
+                <button id="confirmSubmitBtn" class="btn-confirm">نعم، إرسال</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/take-quiz.js"></script>
+</body>
+</html>

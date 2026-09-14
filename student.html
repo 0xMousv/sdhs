@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الطالب - مدرسة السادات الثانوية بنين</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/student.css">
+</head>
+<body>
+
+    <!-- تنبيه الـ Red Flag -->
+    <div id="redFlagAlert" class="red-flag-alert hidden">
+        <div class="container">
+            <div class="alert-content">
+                <span class="alert-icon"></span>
+                <div class="alert-text">
+                    <strong>تنبيه مهم!</strong>
+                    <p>لديك كويزات اختيارية يجب حلها لتحسين مستواك. يرجى متابعتها في قسم الكويزات.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الشريط العلوي -->
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo-area">
+                <img src="../assets/logo.jpg" alt="شعار المدرسة" class="logo-img">
+                <div>
+                    <h1 class="school-name">مدرسة السادات الثانوية بنين</h1>
+                    <span class="student-badge">لوحة الطالب</span>
+                </div>
+            </div>
+            <div class="user-area">
+                <div class="xp-badge">
+                    <span class="xp-icon">⭐</span>
+                    <span class="xp-value" id="totalXP">0</span>
+                    <span class="xp-label">XP</span>
+                </div>
+                <div class="student-info">
+                    <span class="student-name" id="studentName">جاري التحميل...</span>
+                    <span class="student-class" id="studentClass">-</span>
+                </div>
+                <button id="theme-toggle" class="theme-btn">🌙</button>
+                <button id="logoutBtn" class="logout-btn">خروج</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container main-container">
+        <!-- القائمة الجانبية -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-section="dashboard">
+                    <span class="nav-icon"></span>
+                    <span class="nav-text">لوحة التحكم</span>
+                </button>
+                <button class="nav-item" data-section="quizzes">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">الكويزات</span>
+                    <span class="nav-badge" id="quizCount">0</span>
+                </button>
+                <button class="nav-item" data-section="materials">
+                    <span class="nav-icon">📚</span>
+                    <span class="nav-text">المواد والشروحات</span>
+                </button>
+                <button class="nav-item" data-section="notifications">
+                    <span class="nav-icon"></span>
+                    <span class="nav-text">الإشعارات</span>
+                    <span class="nav-badge" id="notifCount">0</span>
+                </button>
+                <button class="nav-item" data-section="grades">
+                    <span class="nav-icon">📈</span>
+                    <span class="nav-text">درجاتي</span>
+                </button>
+                <button class="nav-item" data-section="leaderboard">
+                    <span class="nav-icon">🏆</span>
+                    <span class="nav-text">لوحة الصدارة</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content">
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p>جاري تحميل بياناتك...</p>
+            </div>
+
+            <!-- قسم لوحة التحكم -->
+            <section id="dashboard" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">مرحباً، <span id="welcomeName">طالب</span> 👋</h2>
+                    <p class="section-subtitle">إليك ملخص نشاطك الدراسي</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="completedQuizzes">0</span>
+                            <span class="stat-label">كويزات مكتملة</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalXPStats">0</span>
+                            <span class="stat-label">إجمالي XP</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="avgScore">0%</span>
+                            <span class="stat-label">متوسط الدرجات</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="pendingQuizzes">0</span>
+                            <span class="stat-label">كويزات قيد الانتظار</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3 class="card-title">الكويزات القادمة</h3>
+                        <div class="recent-list" id="upcomingQuizzes">
+                            <div class="loading-item">جاري التحميل...</div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3 class="card-title">آخر إنجازاتك</h3>
+                        <div class="recent-list" id="recentAchievements">
+                            <div class="loading-item">جاري التحميل...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- قسم الكويزات -->
+            <section id="quizzes" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">الكويزات المتاحة</h2>
+                        <p class="section-subtitle">حل الكويزات قبل تاريخ الانتهاء لكسب XP</p>
+                    </div>
+                </div>
+
+                <div class="quizzes-grid" id="quizzesGrid">
+                    <div class="loading-card">جاري تحميل الكويزات...</div>
+                </div>
+            </section>
+
+            <!-- قسم المواد والشروحات -->
+            <section id="materials" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">المواد والشروحات</h2>
+                    <p class="section-subtitle">شروحات ومواد من مدرسيك</p>
+                </div>
+
+                <div class="materials-grid" id="materialsGrid">
+                    <div class="loading-card">جاري تحميل المواد...</div>
+                </div>
+            </section>
+
+            <!-- قسم الإشعارات -->
+            <section id="notifications" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">الإشعارات</h2>
+                    <p class="section-subtitle">آخر التحديثات والإعلانات</p>
+                </div>
+
+                <div class="notifications-list" id="notificationsList">
+                    <div class="loading-item">جاري تحميل الإشعارات...</div>
+                </div>
+            </section>
+
+            <!-- قسم الدرجات -->
+            <section id="grades" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">درجاتي</h2>
+                    <p class="section-subtitle">تفاصيل درجاتك في الكويزات</p>
+                </div>
+
+                <div class="grades-container" id="gradesContainer">
+                    <div class="loading-item">جاري تحميل الدرجات...</div>
+                </div>
+            </section>
+
+            <!-- قسم لوحة الصدارة -->
+            <section id="leaderboard" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">🏆 لوحة الصدارة</h2>
+                    <p class="section-subtitle">ترتيب الطلاب حسب نقاط الـ XP. أول واحد يحل الكويز ياخد الدرجة الكاملة، وبعد كل حل تقل المكافأة 2% لحد نص الدرجة</p>
+                </div>
+                <div id="leaderboardContainer">
+                    <div class="loading-item">جاري تحميل الترتيب...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="js/student.js"></script>
+</body>
+</html>

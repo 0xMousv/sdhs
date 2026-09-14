@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الأدمن - مدرسة السادات الثانوية بنين</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+    <!-- الشريط العلوي -->
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo-area">
+                <img src="assets/logo.jpg" alt="شعار المدرسة" class="logo-img">
+                <div>
+                    <h1 class="school-name">مدرسة السادات الثانوية بنين</h1>
+                    <span class="admin-badge">لوحة التحكم</span>
+                </div>
+            </div>
+            <div class="user-area">
+                <div class="admin-info">
+                    <span class="admin-name" id="adminName">جاري التحميل...</span>
+                    <span class="admin-role">مدير النظام</span>
+                </div>
+                <button id="theme-toggle" class="theme-btn">🌙</button>
+                <button id="logoutBtn" class="logout-btn">خروج</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container main-container">
+        <!-- القائمة الجانبية -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-section="dashboard">
+                    <span class="nav-icon"></span>
+                    <span class="nav-text">لوحة التحكم</span>
+                </button>
+                <button class="nav-item" data-section="students">
+                    <span class="nav-icon">🎓</span>
+                    <span class="nav-text">الطلاب</span>
+                    <span class="nav-badge" id="studentsCount">0</span>
+                </button>
+                <button class="nav-item" data-section="teachers">
+                    <span class="nav-icon">🏫</span>
+                    <span class="nav-text">المدرسين</span>
+                    <span class="nav-badge" id="teachersCount">0</span>
+                </button>
+                <button class="nav-item" data-section="quizzes">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">الكويزات</span>
+                </button>
+                <button class="nav-item" data-section="reports">
+                    <span class="nav-icon"></span>
+                    <span class="nav-text">التقارير</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content">
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p>جاري تحميل البيانات...</p>
+            </div>
+
+            <!-- قسم لوحة التحكم -->
+            <section id="dashboard" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">لوحة التحكم</h2>
+                    <p class="section-subtitle">نظرة عامة على المدرسة</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🎓</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalStudents">0</span>
+                            <span class="stat-label">إجمالي الطلاب</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">‍🏫</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalTeachers">0</span>
+                            <span class="stat-label">إجمالي المدرسين</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalQuizzes">0</span>
+                            <span class="stat-label">الكويزات النشطة</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-card-warning">
+                        <div class="stat-icon">🚩</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="redFlagCount">0</span>
+                            <span class="stat-label">طلاب عليهم Red Flag</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3 class="card-title">آخر الطلاب المسجلين</h3>
+                        <div class="recent-list" id="recentStudents">
+                            <div class="loading-item">جاري التحميل...</div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3 class="card-title">الطلاب المحتاجين متابعة</h3>
+                        <div class="recent-list" id="redFlagStudents">
+                            <div class="loading-item">جاري التحميل...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- قسم الطلاب -->
+            <section id="students" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">إدارة الطلاب</h2>
+                        <p class="section-subtitle">إضافة وتعديل وحذف الطلاب</p>
+                    </div>
+                    <button class="btn-add" id="addStudentBtn">+ إضافة طالب</button>
+                </div>
+
+                <div class="search-bar">
+                    <input type="text" id="searchStudents" placeholder="ابحث عن طالب بالاسم أو الرقم...">
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>الصف</th>
+                                <th>Red Flag</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <tr><td colspan="5" class="loading-cell">جاري تحميل البيانات...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- قسم المدرسين -->
+            <section id="teachers" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">إدارة المدرسين</h2>
+                        <p class="section-subtitle">إضافة وتعديل وحذف المدرسين</p>
+                    </div>
+                    <button class="btn-add" id="addTeacherBtn">+ إضافة مدرس</button>
+                </div>
+
+                <div class="search-bar">
+                    <input type="text" id="searchTeachers" placeholder="ابحث عن مدرس بالاسم أو المادة...">
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>المادة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teachersTableBody">
+                            <tr><td colspan="4" class="loading-cell">جاري تحميل البيانات...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- قسم الكويزات -->
+            <section id="quizzes" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">مراقبة الكويزات</h2>
+                        <p class="section-subtitle">عرض جميع الكويزات النشطة</p>
+                    </div>
+                    <button class="btn-delete-all" id="deleteAllQuizzesBtn">🗑️ إزالة كل الكويزات</button>
+                </div>
+                <div class="quizzes-grid" id="adminQuizzesGrid">
+                    <div class="loading-card">جاري تحميل الكويزات...</div>
+                </div>
+            </section>
+
+            <!-- قسم التقارير -->
+            <section id="reports" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">التقارير</h2>
+                    <p class="section-subtitle">تقارير وإحصائيات المدرسة</p>
+                </div>
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <h3 class="report-title">🏆 لوحة الصدارة (أعلى الطلاب XP)</h3>
+                        <div class="report-list" id="topStudents">
+                            <div class="loading-item">جاري التحميل...</div>
+                        </div>
+                    </div>
+                    <div class="report-card">
+                        <h3 class="report-title">إحصائيات الكويزات</h3>
+                        <div class="report-list" id="quizStats">
+                            <div class="loading-item">جاري التحميل...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal لإضافة/تعديل طالب -->
+    <div id="studentModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="studentModalTitle">إضافة طالب جديد</h3>
+                <button class="modal-close" id="closeStudentModal">&times;</button>
+            </div>
+            <form id="studentForm" class="modal-form">
+                <div class="form-group">
+                    <label>الاسم الكامل *</label>
+                    <input type="text" id="studentName" required>
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني *</label>
+                    <input type="email" id="studentEmail" placeholder="01098944532@student.local" required>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور *</label>
+                    <input type="password" id="studentPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>الصف</label>
+                    <select id="studentClass">
+                        <option value="">اختر الصف</option>
+                        <option value="1st Secondary">الصف الأول الثانوي</option>
+                        <option value="2nd Secondary">الصف الثاني الثانوي</option>
+                        <option value="3rd Secondary">الصف الثالث الثانوي</option>
+                    </select>
+                </div>
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="studentRedFlag">
+                        <span>Red Flag (يحتاج متابعة)</span>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelStudent">إلغاء</button>
+                    <button type="submit" class="btn-save">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal لإضافة/تعديل مدرس -->
+    <div id="teacherModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="teacherModalTitle">إضافة مدرس جديد</h3>
+                <button class="modal-close" id="closeTeacherModal">&times;</button>
+            </div>
+            <form id="teacherForm" class="modal-form">
+                <div class="form-group">
+                    <label>الاسم الكامل *</label>
+                    <input type="text" id="teacherName" required>
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني *</label>
+                    <input type="email" id="teacherEmail" placeholder="teacher@school.local" required>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور *</label>
+                    <input type="password" id="teacherPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>المادة *</label>
+                    <select id="teacherSubject" required>
+                        <option value="">اختر المادة</option>
+                        <option value="العلوم">العلوم</option>
+                        <option value="اللغة العربية">اللغة العربية</option>
+                        <option value="اللغة الإنجليزية">اللغة الإنجليزية</option>
+                        <option value="اللغة الألمانية">اللغة الألمانية</option>
+                        <option value="التاريخ">التاريخ</option>
+                        <option value="البرمجة">البرمجة</option>
+                        <option value="التربية الدينية">التربية الدينية</option>
+                        <option value="الفلسفة">الفلسفة</option>
+                        <option value="الرياضيات">الرياضيات</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelTeacher">إلغاء</button>
+                    <button type="submit" class="btn-save">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>

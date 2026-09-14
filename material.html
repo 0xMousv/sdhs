@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الشرح</title>
+<link rel="stylesheet" href="css/material.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="back" href="javascript:history.back()">← رجوع</a>
+  <div class="brand">مدرسة السادات الثانوية بنين</div>
+</header>
+
+<main class="lesson-page">
+  <div id="loading" class="state">جاري تحميل الشرح...</div>
+  <div id="error" class="state error hidden"></div>
+  <article id="lesson" class="lesson hidden">
+    <div class="lesson-head">
+      <span id="typeBadge" class="badge"></span>
+      <h1 id="title"></h1>
+      <div id="meta" class="meta"></div><div id="materialId" class="id-line"></div>
+    </div>
+    <p id="description" class="description"></p>
+    <section id="videoSection" class="video-wrap hidden">
+      <iframe id="video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen></iframe>
+    </section>
+    <section id="textSection" class="text-content hidden">
+      <h2>شرح الدرس</h2>
+      <div id="content"></div>
+    </section>
+    <div id="emptyContent" class="empty hidden">لا يوجد محتوى للشرح.</div>
+  </article>
+</main>
+
+<script type="module" src="js/material.js"></script>
+</body>
+</html>

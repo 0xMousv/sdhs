@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - مدرسة السادات الثانوية بنين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+
+    <div class="login-container">
+        <!-- الشعار والعنوان -->
+        <div class="login-header">
+            <img src="assets/logo.jpg" alt="شعار المدرسة" class="logo-img">
+            <h1 class="school-name">مدرسة السادات الثانوية بنين</h1>
+            <p class="school-subtitle">منصة إدارة المدرسة</p>
+        </div>
+
+        <!-- فورم تسجيل الدخول -->
+        <form id="loginForm" class="login-form">
+            <div class="form-group">
+                <label for="email" id="emailLabel">البريد الإلكتروني</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    placeholder="name@example.com"
+                    required
+                    autocomplete="email"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">كلمة المرور</label>
+                <div class="password-wrapper">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="••••••••"
+                        required
+                        autocomplete="current-password"
+                    >
+                    <button type="button" id="togglePassword" class="toggle-password" aria-label="إظهار كلمة المرور">
+                        👁️
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-options">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="rememberMe">
+                    <span class="checkmark"></span>
+                    <span class="checkbox-label">تذكرني</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">
+                <span class="btn-text">تسجيل الدخول</span>
+                <span class="btn-loader hidden"></span>
+            </button>
+
+            <div id="errorMessage" class="error-message" role="alert"></div>
+        </form>
+
+        <!-- رابط الصفحة الرئيسية -->
+        <div class="login-footer">
+            <a href="index.html" class="back-link">← العودة للصفحة الرئيسية</a>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="js/login.js"></script>
+</body>
+</html>

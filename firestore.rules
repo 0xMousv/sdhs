@@ -1,0 +1,151 @@
+rules_version = '2';
+
+// =========================================================
+// Firestore Security Rules - مدرسة السادات الثانوية بنين
+// =========================================================
+// الهدف: التحقق من الصلاحيات (admin / teacher / student) بيتم
+// على مستوى قاعدة البيانات نفسها، مش بس بكود الواجهة (client-side).
+// أي حد عنده حساب Auth صالح ومش دوره مسموح له، هيترفض من Firestore
+// نفسها حتى لو عدل الكود أو دخل على الصفحة مباشرة أو استخدم الـ
+// Console/DevTools.
+// =========================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userData(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
+    }
+
+    function myRole() {
+      return isSignedIn() ? userData(request.auth.uid).role : null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && myRole() == 'admin';
+    }
+
+    function isTeacher() {
+      return isSignedIn() && myRole() == 'teacher';
+    }
+
+    function isStudent() {
+      return isSignedIn() && myRole() == 'student';
+    }
+
+    // ---------- users ----------
+    match /users/{userId} {
+      // القراءة: المستخدم يشوف نفسه بس، أو الأدمن/المدرس يشوفوا أي حد
+      allow read: if isSignedIn() &&
+        (request.auth.uid == userId || isAdmin() || isTeacher());
+
+      // الإنشاء: الأدمن يقدر ينشئ أي حساب (من لوحة التحكم)
+      // أو المستخدم ينشئ document نفسه أول مرة بس لو الإيميل بتاعه
+      // بيطابق الدومين المناسب للدور اللي بيحاول ياخده (منع انتحال دور)
+      allow create: if isAdmin() ||
+        (
+          isSignedIn() &&
+          request.auth.uid == userId &&
+          request.resource.data.uid == userId &&
+          (
+            (request.resource.data.role == 'student' && request.auth.token.email.matches('.*@student[.]local$')) ||
+            (request.resource.data.role == 'teacher' && request.auth.token.email.matches('.*@teacher[.]local$')) ||
+            (request.resource.data.role == 'admin'   && request.auth.token.email.matches('.*@admin[.]local$'))
+          )
+        );
+
+      // التعديل: الأدمن يقدر يعدل أي حاجة، والمستخدم يقدر يعدل بياناته
+      // هو بس بشرط إنه مايقدرش يغيّر دوره (role) ويترقى لنفسه
+      allow update: if isAdmin() ||
+        (
+          isSignedIn() && request.auth.uid == userId &&
+          request.resource.data.role == resource.data.role
+        );
+
+      // الحذف: الأدمن بس
+      allow delete: if isAdmin();
+    }
+
+    // ---------- quizzes ----------
+    match /quizzes/{quizId} {
+      // أي مستخدم مسجل دخول يقدر يقرا (الطالب محتاج يشوف الكويز عشان يحله)
+      allow read: if isSignedIn();
+
+      // الإنشاء/التعديل الكامل: الأدمن، أو المدرس صاحب الكويز نفسه
+      allow create: if isAdmin() ||
+        (isTeacher() && request.resource.data.teacherId == request.auth.uid);
+
+      allow update: if isAdmin() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid) ||
+        // استثناء وحيد للطالب: تحديث عدادات الحل فقط (نظام تناقص XP)
+        // بشرط إنه بس بيزود العداد بواحد، مش بيلمس أي حقل تاني
+        (
+          isStudent() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['solvedCount', 'submissionsCount']) &&
+          request.resource.data.submissionsCount == resource.data.get('submissionsCount', 0) + 1 &&
+          request.resource.data.get('solvedCount', 0) >= resource.data.get('solvedCount', 0)
+        );
+
+      allow delete: if isAdmin() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid);
+    }
+
+    // ---------- submissions ----------
+    match /submissions/{submissionId} {
+      // القراءة: الطالب يشوف تسليماته بس، والمدرس/الأدمن يشوفوا الكل
+      allow read: if isAdmin() || isTeacher() ||
+        (isStudent() && resource.data.studentId == request.auth.uid);
+
+      // الإنشاء: طالب بس، وبيسلم باسمه هو، وبحدود منطقية للدرجة والـ XP
+      // (عشان محدش يعدل الكود من الـ DevTools ويبعت درجة/XP وهمية)
+      allow create: if isStudent() &&
+        request.resource.data.studentId == request.auth.uid &&
+        request.resource.data.score >= 0 &&
+        request.resource.data.score <= request.resource.data.totalQuestions &&
+        request.resource.data.xpEarned >= 0;
+
+      // التعديل والحذف: الأدمن بس (منع أي تلاعب بالدرجات بعد التسليم)
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- materials ----------
+    match /materials/{materialId} {
+      allow read: if isSignedIn();
+
+      allow create: if isAdmin() ||
+        (isTeacher() && request.resource.data.teacherId == request.auth.uid);
+
+      allow update: if isAdmin() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid);
+
+      allow delete: if isAdmin() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid);
+    }
+
+    // ---------- announcements ----------
+    match /announcements/{announcementId} {
+      allow read: if isSignedIn();
+
+      allow create: if isAdmin() ||
+        (isTeacher() && request.resource.data.teacherId == request.auth.uid);
+
+      allow update: if isAdmin() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid) ||
+        // الطالب يقدر بس يعلّم الإشعار كمقروء (readBy)
+        (isStudent() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy']));
+
+      allow delete: if isAdmin() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid);
+    }
+
+    // أي collection تانية مش متعرّفة هنا: ممنوعة تمامًا افتراضيًا
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

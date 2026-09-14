@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المدرس - مدرسة السادات الثانوية بنين</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/teacher.css">
+</head>
+<body>
+
+    <!-- الشريط العلوي -->
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo-area">
+                <img src="assets/logo.jpg" alt="شعار المدرسة" class="logo-img">
+                <div>
+                    <h1 class="school-name">مدرسة السادات الثانوية بنين</h1>
+                    <span class="teacher-badge">لوحة المدرس - الصف الأول الثانوي</span>
+                </div>
+            </div>
+            <div class="user-area">
+                <div class="teacher-info">
+                    <span class="teacher-name" id="teacherName">جاري التحميل...</span>
+                    <span class="teacher-subject" id="teacherSubject">-</span>
+                </div>
+                <button id="theme-toggle" class="theme-btn"></button>
+                <button id="logoutBtn" class="logout-btn">خروج</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container main-container">
+        <!-- القائمة الجانبية -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-section="dashboard">
+                    <span class="nav-icon"></span>
+                    <span class="nav-text">لوحة التحكم</span>
+                </button>
+                <button class="nav-item" data-section="materials">
+                    <span class="nav-icon">📚</span>
+                    <span class="nav-text">الشروحات</span>
+                    <span class="nav-badge" id="materialsCount">0</span>
+                </button>
+                <button class="nav-item" data-section="quizzes">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">الكويزات</span>
+                    <span class="nav-badge" id="quizzesCount">0</span>
+                </button>
+                <button class="nav-item" data-section="students">
+                    <span class="nav-icon">🎓</span>
+                    <span class="nav-text">الطلاب</span>
+                </button>
+                <button class="nav-item" data-section="announcements">
+                    <span class="nav-icon"></span>
+                    <span class="nav-text">الإشعارات</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content">
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p>جاري تحميل البيانات...</p>
+            </div>
+
+            <!-- لوحة التحكم -->
+            <section id="dashboard" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">مرحباً، <span id="welcomeName">أستاذ</span> 👋</h2>
+                        <p class="section-subtitle">نظرة عامة على نشاطك مع طلاب الصف الأول الثانوي</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📚</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalMaterials">0</span>
+                            <span class="stat-label">شرح منشور</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalQuizzes">0</span>
+                            <span class="stat-label">كويز منشور</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎓</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalStudents">0</span>
+                            <span class="stat-label">طالب في الصف</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="avgScore">0%</span>
+                            <span class="stat-label">متوسط الدرجات</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3 class="card-title">آخر الشروحات</h3>
+                        <div class="recent-list" id="recentMaterials">
+                            <div class="loading-item">جاري التحميل...</div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3 class="card-title">آخر الكويزات</h3>
+                        <div class="recent-list" id="recentQuizzes">
+                            <div class="loading-item">جاري التحميل...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- الشروحات -->
+            <section id="materials" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">الشروحات والمحتوى التعليمي</h2>
+                        <p class="section-subtitle">أضف شروحات ومواد تعليمية لطلاب الصف الأول الثانوي</p>
+                    </div>
+                    <button class="btn-add" id="addMaterialBtn">+ إضافة شرح جديد</button>
+                </div>
+                <div class="materials-grid" id="materialsGrid">
+                    <div class="loading-card">جاري تحميل الشروحات...</div>
+                </div>
+            </section>
+
+            <!-- الكويزات -->
+            <section id="quizzes" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">إدارة الكويزات</h2>
+                        <p class="section-subtitle">إنشاء وإدارة الكويزات للصف الأول الثانوي</p>
+                    </div>
+                    <button class="btn-add" id="addQuizBtn">+ إنشاء كويز جديد</button>
+                </div>
+                <div class="quizzes-grid" id="quizzesGrid">
+                    <div class="loading-card">جاري تحميل الكويزات...</div>
+                </div>
+            </section>
+
+            <!-- الطلاب -->
+            <section id="students" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">طلاب الصف الأول الثانوي</h2>
+                        <p class="section-subtitle">عرض ومتابعة تقدم الطلاب</p>
+                    </div>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="searchStudents" placeholder="ابحث عن طالب بالاسم...">
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>متوسط الدرجات</th>
+                                <th>الكويزات المكتملة</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <tr><td colspan="5" class="loading-cell">جاري تحميل البيانات...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- الإشعارات -->
+            <section id="announcements" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">الإشعارات والإعلانات</h2>
+                        <p class="section-subtitle">إرسال إشعارات لطلاب الصف الأول الثانوي</p>
+                    </div>
+                    <button class="btn-add" id="addAnnouncementBtn">+ إرسال إشعار</button>
+                </div>
+                <div class="announcements-list" id="announcementsList">
+                    <div class="loading-item">جاري تحميل الإشعارات...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal الشرح -->
+    <div id="materialModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="materialModalTitle">إضافة شرح جديد</h3>
+                <button class="modal-close" id="closeMaterialModal">&times;</button>
+            </div>
+            <form id="materialForm" class="modal-form">
+                <div class="form-group">
+                    <label>عنوان الشرح *</label>
+                    <input type="text" id="materialTitle" placeholder="مثال: شرح المعادلات التربيعية" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>نوع المحتوى *</label>
+                        <select id="materialType" required>
+                            <option value="">اختر النوع</option>
+                            <option value="text">نص مكتوب</option>
+                            <option value="video">فيديو (YouTube)</option>
+                            
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>المادة *</label>
+                        <input type="text" id="materialSubject" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="materialUrl">رابط فيديو YouTube</label>
+                    <input type="url" id="materialUrl" placeholder="https://www.youtube.com/watch?v=..." inputmode="url">
+                </div>
+                <div class="form-group">
+                    <label>وصف الشرح *</label>
+                    <textarea id="materialDescription" rows="4" placeholder="اكتب وصفاً تفصيلياً للشرح..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="materialContent">نص الشرح</label>
+                    <textarea id="materialContent" rows="6" placeholder="اكتب شرح الدرس هنا..."></textarea>
+                </div>
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="materialFeatured">
+                        <span>شرح مميز (يظهر في الأعلى)</span>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelMaterial">إلغاء</button>
+                    <button type="submit" class="btn-save">نشر الشرح</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal الكويز (مع الأسئلة والديدلاين الاحترافي) -->
+    <div id="quizModal" class="modal hidden">
+        <div class="modal-content modal-xlarge">
+            <div class="modal-header">
+                <h3 id="quizModalTitle">إنشاء كويز جديد</h3>
+                <button class="modal-close" id="closeQuizModal">&times;</button>
+            </div>
+            <form id="quizForm" class="modal-form">
+                
+                <!-- معلومات الكويز -->
+                <div class="form-section">
+                    <h4 class="section-subtitle">معلومات الكويز</h4>
+                    <div class="form-group">
+                        <label>عنوان الكويز *</label>
+                        <input type="text" id="quizTitle" placeholder="مثال: كويز الجبر - الفصل الأول" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>المادة *</label>
+                            <input type="text" id="quizSubject" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>نقاط XP *</label>
+                            <input type="number" id="quizXP" min="10" max="500" value="50" required>
+                        </div>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="quizOptional">
+                            <span>كويز اختياري (للطلاب الذين عليهم Red Flag فقط)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- الديدلاين الاحترافي -->
+                <div class="form-section deadline-section">
+                    <h4 class="section-subtitle">⏰ موعد الكويز (الديدلاين)</h4>
+                    <p class="deadline-hint">حدد اليوم والوقت الذي يبدأ وينتهي فيه الكويز</p>
+                    
+                    <div class="deadline-grid">
+                        <div class="deadline-item">
+                            <label class="deadline-label">📅 تاريخ اليوم</label>
+                            <input type="date" id="deadlineDate" required>
+                        </div>
+                        <div class="deadline-item">
+                            <label class="deadline-label">🟢 يبدأ من الساعة</label>
+                            <div class="time-picker">
+                                <input type="time" id="startTime" required>
+                            </div>
+                        </div>
+                        <div class="deadline-item">
+                            <label class="deadline-label">🔴 ينتهي في الساعة</label>
+                            <div class="time-picker">
+                                <input type="time" id="endTime" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="deadline-preview" id="deadlinePreview">
+                        <div class="preview-icon"></div>
+                        <div class="preview-text">
+                            <span class="preview-label">معاينة الموعد:</span>
+                            <span class="preview-value" id="deadlinePreviewText">لم يتم تحديد الموعد بعد</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الأسئلة -->
+                <div class="form-section">
+                    <div class="questions-header">
+                        <div>
+                            <h4 class="section-subtitle">الأسئلة والخيارات</h4>
+                            <p class="questions-hint">أضف الأسئلة مع 4 خيارات لكل سؤال، واختر الإجابة الصحيحة واكتب سبب صحة/خطأ كل خيار</p>
+                        </div>
+                        <button type="button" id="addQuestionBtn" class="btn-add-question">+ إضافة سؤال</button>
+                    </div>
+                    
+                    <div id="questionsContainer" class="questions-container">
+                        <div class="empty-questions">
+                            <div class="empty-icon">📝</div>
+                            <p>لم تضف أي أسئلة بعد.</p>
+                            <p class="empty-hint">اضغط "إضافة سؤال" للبدء</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions sticky-actions">
+                    <button type="button" class="btn-cancel" id="cancelQuiz">إلغاء</button>
+                    <button type="submit" class="btn-save">نشر الكويز</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Template السؤال -->
+    <template id="questionTemplate">
+        <div class="question-card">
+            <div class="question-header">
+                <div class="question-title-area">
+                    <span class="question-number-badge">1</span>
+                    <h5 class="question-number">السؤال 1</h5>
+                </div>
+                <button type="button" class="btn-remove-question" title="حذف السؤال">🗑️</button>
+            </div>
+            
+            <div class="form-group">
+                <label>نص السؤال *</label>
+                <textarea class="question-text" rows="3" placeholder="اكتب نص السؤال هنا..." required></textarea>
+            </div>
+
+            <div class="options-container">
+                <div class="options-header">
+                    <label class="options-label">الخيارات (اختر الإجابة الصحيحة بالضغط على الدائرة)</label>
+                    <span class="options-hint">💡 اكتب سبب صحة أو خطأ كل خيار في المربع أسفل الخيار</span>
+                </div>
+                
+                <div class="option-item correct-option">
+                    <div class="option-top">
+                        <input type="radio" name="correct_answer_QINDEX" value="0" class="option-radio" required>
+                        <span class="option-letter">A</span>
+                        <input type="text" class="option-text" placeholder="اكتب نص الخيار الأول..." required>
+                    </div>
+                    <div class="option-bottom">
+                        <label class="option-explanation-label">💬 شرح (ليه الخيار ده صح أو غلط):</label>
+                        <textarea class="option-explanation" rows="2" placeholder="مثال: هذا الخيار صحيح لأن..."></textarea>
+                    </div>
+                </div>
+
+                <div class="option-item">
+                    <div class="option-top">
+                        <input type="radio" name="correct_answer_QINDEX" value="1" class="option-radio" required>
+                        <span class="option-letter">B</span>
+                        <input type="text" class="option-text" placeholder="اكتب نص الخيار الثاني..." required>
+                    </div>
+                    <div class="option-bottom">
+                        <label class="option-explanation-label">💬 شرح (ليه الخيار ده صح أو غلط):</label>
+                        <textarea class="option-explanation" rows="2" placeholder="مثال: هذا الخيار خاطئ لأن..."></textarea>
+                    </div>
+                </div>
+
+                <div class="option-item">
+                    <div class="option-top">
+                        <input type="radio" name="correct_answer_QINDEX" value="2" class="option-radio" required>
+                        <span class="option-letter">C</span>
+                        <input type="text" class="option-text" placeholder="اكتب نص الخيار الثالث..." required>
+                    </div>
+                    <div class="option-bottom">
+                        <label class="option-explanation-label">💬 شرح (ليه الخيار ده صح أو غلط):</label>
+                        <textarea class="option-explanation" rows="2" placeholder="مثال: هذا الخيار خاطئ لأن..."></textarea>
+                    </div>
+                </div>
+
+                <div class="option-item">
+                    <div class="option-top">
+                        <input type="radio" name="correct_answer_QINDEX" value="3" class="option-radio" required>
+                        <span class="option-letter">D</span>
+                        <input type="text" class="option-text" placeholder="اكتب نص الخيار الرابع..." required>
+                    </div>
+                    <div class="option-bottom">
+                        <label class="option-explanation-label">💬 شرح (ليه الخيار ده صح أو غلط):</label>
+                        <textarea class="option-explanation" rows="2" placeholder="مثال: هذا الخيار خاطئ لأن..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group correct-explanation-group">
+                <label>📖 شرح إضافي للإجابة الصحيحة (اختياري)</label>
+                <textarea class="correct-explanation" rows="3" placeholder="اكتب شرحاً مفصلاً وموسعاً للإجابة الصحيحة..."></textarea>
+            </div>
+        </div>
+    </template>
+
+    <!-- Modal الإشعار -->
+    <div id="announcementModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>إرسال إشعار جديد</h3>
+                <button class="modal-close" id="closeAnnouncementModal">&times;</button>
+            </div>
+            <form id="announcementForm" class="modal-form">
+                <div class="form-group">
+                    <label>عنوان الإشعار *</label>
+                    <input type="text" id="announcementTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>محتوى الإشعار *</label>
+                    <textarea id="announcementContent" rows="5" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelAnnouncement">إلغاء</button>
+                    <button type="submit" class="btn-save">إرسال</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="js/teacher.js"></script>
+</body>
+</html>
