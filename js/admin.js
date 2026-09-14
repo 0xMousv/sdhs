@@ -3,7 +3,7 @@
 // =========================================
 // 1. Firebase Configuration & Imports
 // =========================================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { 
     getAuth, 
     onAuthStateChanged, 
@@ -76,52 +76,16 @@ onAuthStateChanged(auth, async (user) => {
                     window.location.href = '../login.html';
                 }
             } else {
-                // المستخدم مش موجود في Firestore
-                // نتحقق من نوع الإيميل
-                const email = user.email.toLowerCase();
-                
-                if (email.endsWith('@admin.local')) {
-                    // أدمن لكن مفيش document → ننشئه تلقائيًا
-                    console.log('Creating admin document in Firestore...');
-                    
-                    currentUserData = {
-                        email: email,
-                        role: 'admin',
-                        name: email.split('@')[0],
-                        uid: user.uid,
-                        createdAt: new Date().toISOString()
-                    };
-
-                    // إنشاء document في Firestore
-                    await setDoc(userDocRef, currentUserData);
-                    
-                    document.getElementById('adminName').textContent = currentUserData.name;
-                    initializeAdmin();
-                } else {
-                    // مش أدمن 
-                    alert('ليس لديك صلاحية الوصول لهذه الصفحة');
-                    await signOut(auth);
-                    window.location.href = '../login.html';
-                }
-            }
-        } catch (error) {
-            console.error('Error checking user role:', error);
-            
-            // Fallback: لو فيه مشكلة في Firestore، نتحقق من الإيميل بس
-            const email = user.email.toLowerCase();
-            if (email.endsWith('@admin.local')) {
-                currentUserData = {
-                    email: email,
-                    role: 'admin',
-                    name: email.split('@')[0]
-                };
-                document.getElementById('adminName').textContent = currentUserData.name;
-                initializeAdmin();
-            } else {
-                alert('حدث خطأ في التحقق من الصلاحيات');
+                // لا ننشئ صلاحية من الإيميل. الحساب يجب أن يكون مضافًا من لوحة الإدارة.
+                alert('الحساب موجود في Firebase Authentication لكنه غير مسجل في users. أضفه من لوحة الإدارة أو أنشئ حسابًا جديدًا.');
                 await signOut(auth);
                 window.location.href = '../login.html';
             }
+        } catch (error) {
+            console.error('Error checking admin role:', error);
+            alert('تعذر التحقق من صلاحيات الأدمن');
+            await signOut(auth);
+            window.location.href = '../login.html';
         }
     } else {
         // مش مسجل دخول
@@ -556,7 +520,7 @@ studentForm.addEventListener('submit', async (e) => {
             }
 
             // 🌟 الحيلة السحرية: إنشاء تطبيق فايربيس ثانوي
-            const secondaryApp = initializeApp(firebaseConfig, 'SecondaryAppStudent');
+            const secondaryApp = initializeApp(firebaseConfig, `SecondaryAppStudent-${Date.now()}`);
             const secondaryAuth = getAuth(secondaryApp);
             
             const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
@@ -573,6 +537,8 @@ studentForm.addEventListener('submit', async (e) => {
                 createdAt: new Date().toISOString()
             });
 
+            await signOut(secondaryAuth);
+            await deleteApp(secondaryApp);
             alert('تم إضافة الطالب بنجاح! ✅');
         } else {
             // وضع التعديل
@@ -631,7 +597,7 @@ teacherForm.addEventListener('submit', async (e) => {
             }
 
             // 🌟 نفس الحيلة السحرية للمدرسين
-            const secondaryApp = initializeApp(firebaseConfig, 'SecondaryAppTeacher');
+            const secondaryApp = initializeApp(firebaseConfig, `SecondaryAppTeacher-${Date.now()}`);
             const secondaryAuth = getAuth(secondaryApp);
             
             const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
@@ -646,6 +612,8 @@ teacherForm.addEventListener('submit', async (e) => {
                 createdAt: new Date().toISOString()
             });
 
+            await signOut(secondaryAuth);
+            await deleteApp(secondaryApp);
             alert('تم إضافة المدرس بنجاح! ✅');
         } else {
             // وضع التعديل

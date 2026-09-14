@@ -15,7 +15,6 @@ import {
     getDocs, 
     doc, 
     getDoc, 
-    setDoc,
     addDoc, 
     updateDoc, 
     deleteDoc,
@@ -77,42 +76,15 @@ onAuthStateChanged(auth, async (user) => {
                     window.location.href = '../login.html';
                 }
             } else {
-                const email = user.email.toLowerCase();
-                if (email.endsWith('@teacher.local')) {
-                    currentUserData = {
-                        email: email,
-                        role: 'teacher',
-                        name: email.split('@')[0],
-                        subject: 'غير محدد',
-                        uid: user.uid,
-                        createdAt: new Date().toISOString()
-                    };
-                    await setDoc(userDocRef, currentUserData);
-                    document.getElementById('teacherName').textContent = currentUserData.name;
-                    initializeTeacher();
-                } else {
-                    alert('ليس لديك صلاحية الوصول لهذه الصفحة');
-                    await signOut(auth);
-                    window.location.href = '../login.html';
-                }
-            }
-        } catch (error) {
-            console.error('Error checking user role:', error);
-            const email = user.email.toLowerCase();
-            if (email.endsWith('@teacher.local')) {
-                currentUserData = {
-                    email: email,
-                    role: 'teacher',
-                    name: email.split('@')[0],
-                    subject: 'غير محدد'
-                };
-                document.getElementById('teacherName').textContent = currentUserData.name;
-                initializeTeacher();
-            } else {
-                alert('حدث خطأ في التحقق من الصلاحيات');
+                alert('الحساب غير مسجل كمدرس على المنصة');
                 await signOut(auth);
                 window.location.href = '../login.html';
             }
+        } catch (error) {
+            console.error('Error checking user role:', error);
+            alert('تعذر التحقق من صلاحيات الحساب');
+            await signOut(auth);
+            window.location.href = '../login.html';
         }
     } else {
         window.location.href = '../login.html';

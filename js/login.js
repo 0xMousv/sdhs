@@ -51,45 +51,28 @@ togglePasswordBtn.addEventListener('click', () => {
 });
 
 // =========================================
-// 4. Role is determined by the email address
+// 4. Role is determined by the account stored in Firestore
 // =========================================
-function getRoleFromEmail(email) {
-    const value = email.toLowerCase().trim();
-    if (value.endsWith('@admin.local')) return 'admin';
-    if (value.endsWith('@teacher.local')) return 'teacher';
-    if (value.endsWith('@student.local')) return 'student';
-    return null;
+// لا نعتمد على شكل الإيميل أو دومين وهمي لتحديد الصلاحية.
+// بعد نجاح Firebase Authentication نقرأ users/{uid} ونستخدم role المسجل هناك.
+const ALLOWED_ROLES = new Set(['admin', 'teacher', 'student']);
+
+function normalizeRole(role) {
+    const value = String(role || '').trim().toLowerCase();
+    return ALLOWED_ROLES.has(value) ? value : null;
 }
 
-function getRedirectPage(email) {
-    const role = getRoleFromEmail(email);
+function getRedirectPage(role) {
     return role ? `${role}.html` : null;
 }
 
-// =========================================
-// 6. Verify User Role from Firestore
-// =========================================
-async function verifyUserRole(uid) {
-    try {
-        const userDoc = await getDoc(doc(db, 'users', uid));
-        
-        if (userDoc.exists()) {
-            return userDoc.data().role;
-        }
-        
-        // لو مفيش document في Firestore، استخدم الـ email domain
-        const user = auth.currentUser;
-        const email = user.email.toLowerCase();
-        
-        if (email.endsWith('@admin.local')) return 'admin';
-        if (email.endsWith('@teacher.local')) return 'teacher';
-        if (email.endsWith('@student.local')) return 'student';
-        
-        return null;
-    } catch (error) {
-        console.error('Error verifying role:', error);
-        return null;
-    }
+async function getUserProfile(uid) {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (!userDoc.exists()) return null;
+    const data = userDoc.data();
+    const role = normalizeRole(data.role);
+    if (!role) return null;
+    return { ...data, role };
 }
 
 // =========================================
@@ -115,24 +98,17 @@ loginForm.addEventListener('submit', async (e) => {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
-        // الإيميل هو الذي يحدد نوع الحساب والصفحة، بدون اختيار يدوي.
-        const emailRole = getRoleFromEmail(email);
-        if (!emailRole) {
-            showError('هذا البريد غير تابع لنوع حساب معتمد.');
+        // الحسابات المسموح لها بالدخول هي الحسابات الموجودة في users/{uid}.
+        // الدور محفوظ في Firestore؛ لا يوجد اختيار يدوي للدور ولا اعتماد على دومين الإيميل.
+        const profile = await getUserProfile(user.uid);
+        if (!profile) {
+            showError('الحساب غير مسجل على المنصة أو لم يتم تحديد صلاحياته بعد.');
             await auth.signOut();
             setLoading(false);
             return;
         }
 
-        // تحقق إضافي من Firestore لمنع اختلاف بيانات الحساب عن البريد.
-        const storedRole = await verifyUserRole(user.uid);
-        if (storedRole && storedRole !== emailRole) {
-            showError('بيانات الحساب لا تطابق البريد الإلكتروني. تواصل مع الإدارة.');
-            await auth.signOut();
-            setLoading(false);
-            return;
-        }
-        const role = emailRole;
+        const role = profile.role;
         
         // حفظ بيانات الجلسة
         localStorage.setItem('isLoggedIn', 'true');
@@ -145,7 +121,7 @@ loginForm.addEventListener('submit', async (e) => {
         
         // التوجيه بعد 600ms
         setTimeout(() => {
-            const redirectPage = getRedirectPage(email);
+            const redirectPage = getRedirectPage(role);
             window.location.href = redirectPage;
         }, 600);
         
@@ -210,9 +186,19 @@ function setLoading(isLoading) {
 // =========================================
 // 9. Auto-redirect if already logged in
 // =========================================
-onAuthStateChanged(auth, (user) => {
-    if (user && user.email) {
-        const redirectPage = getRedirectPage(user.email);
-        if (redirectPage) window.location.href = redirectPage;
+onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+
+    try {
+        const profile = await getUserProfile(user.uid);
+        const redirectPage = profile ? getRedirectPage(profile.role) : null;
+        if (redirectPage) {
+            window.location.href = redirectPage;
+        } else {
+            await auth.signOut();
+        }
+    } catch (error) {
+        console.error('Session role check failed:', error);
+        await auth.signOut();
     }
 });

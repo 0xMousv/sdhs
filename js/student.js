@@ -15,7 +15,6 @@ import {
     getDocs, 
     doc, 
     getDoc, 
-    setDoc,
     addDoc, 
     updateDoc,
     query,
@@ -81,29 +80,9 @@ onAuthStateChanged(auth, async (user) => {
                     window.location.href = '../login.html';
                 }
             } else {
-                // المستخدم غير موجود في Firestore - ننشئه تلقائياً
-                const email = user.email.toLowerCase();
-                if (email.endsWith('@student.local')) {
-                    currentUserData = {
-                        email: email,
-                        role: 'student',
-                        name: email.split('@')[0],
-                        uid: user.uid,
-                        class: '1st Secondary',
-                        redFlag: false,
-                        totalXP: 0,
-                        completedQuizzes: 0,
-                        avgScore: 0,
-                        createdAt: new Date().toISOString()
-                    };
-                    await setDoc(userDocRef, currentUserData);
-                    updateStudentUI();
-                    initializeStudent();
-                } else {
-                    alert('ليس لديك صلاحية الوصول لهذه الصفحة');
-                    await signOut(auth);
-                    window.location.href = '../login.html';
-                }
+                alert('الحساب غير مسجل كطالب على المنصة');
+                await signOut(auth);
+                window.location.href = '../login.html';
             }
         } catch (error) {
             console.error('Error checking user role:', error);
