@@ -77,21 +77,21 @@ onAuthStateChanged(auth, async (user) => {
                 } else {
                     alert('ليس لديك صلاحية الوصول لهذه الصفحة');
                     await signOut(auth);
-                    window.location.href = '../login.html';
+                    window.location.href = 'login.html';
                 }
             } else {
                 alert('الحساب غير مسجل كطالب على المنصة');
                 await signOut(auth);
-                window.location.href = '../login.html';
+                window.location.href = 'login.html';
             }
         } catch (error) {
             console.error('Error checking user role:', error);
             alert('حدث خطأ في التحقق من الصلاحيات');
             await signOut(auth);
-            window.location.href = '../login.html';
+            window.location.href = 'login.html';
         }
     } else {
-        window.location.href = '../login.html';
+        window.location.href = 'login.html';
     }
 });
 
