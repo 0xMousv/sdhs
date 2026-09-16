@@ -53,6 +53,7 @@
                     <span class="nav-icon">📝</span>
                     <span class="nav-text">الكويزات</span>
                 </button>
+                <button class="nav-item" data-section="principals"><span class="nav-icon">👩‍💼</span><span class="nav-text">المديرة</span></button>
                 <button class="nav-item" data-section="reports">
                     <span class="nav-icon"></span>
                     <span class="nav-text">التقارير</span>
@@ -175,11 +176,12 @@
                                 <th>الاسم</th>
                                 <th>البريد الإلكتروني</th>
                                 <th>المادة</th>
+                                <th>الفصول المسندة</th>
                                 <th>الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="teachersTableBody">
-                            <tr><td colspan="4" class="loading-cell">جاري تحميل البيانات...</td></tr>
+                            <tr><td colspan="5" class="loading-cell">جاري تحميل البيانات...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -196,6 +198,26 @@
                 </div>
                 <div class="quizzes-grid" id="adminQuizzesGrid">
                     <div class="loading-card">جاري تحميل الكويزات...</div>
+                </div>
+            </section>
+
+            <!-- قسم حساب المديرة -->
+            <section id="principals" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">حساب المديرة والإدارة المدرسية</h2>
+                        <p class="section-subtitle">حساب منفصل لمتابعة إحصائيات جميع الطلاب وإرسال إشعار إلى المدرسة بالكامل</p>
+                    </div>
+                    <button class="btn-add" id="addPrincipalBtn">+ إنشاء حساب مديرة</button>
+                </div>
+                <div class="dashboard-card principal-info-card">
+                    <h3 class="card-title">صلاحيات حساب المديرة</h3>
+                    <div class="permission-list">
+                        <span>✓ إحصائيات جميع الطلاب</span><span>✓ توزيع الطلاب على الفصول</span><span>✓ متابعة Red Flag</span><span>✓ إرسال إشعار لكل المدرسة</span>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table"><thead><tr><th>الاسم</th><th>البريد</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="principalsTableBody"><tr><td colspan="4" class="loading-cell">جاري التحميل...</td></tr></tbody></table>
                 </div>
             </section>
 
@@ -244,20 +266,14 @@
                     <input type="password" id="studentPassword" required minlength="6">
                 </div>
                 <div class="form-group">
-                    <label>الصف</label>
-                    <select id="studentClass">
-                        <option value="">اختر الصف</option>
-                        <option value="1st Secondary">الصف الأول الثانوي</option>
-                        <option value="2nd Secondary">الصف الثاني الثانوي</option>
-                        <option value="3rd Secondary">الصف الثالث الثانوي</option>
+                    <label>الفصل *</label>
+                    <select id="studentClass" required>
+                        <option value="">اختر الفصل</option>
+                        <option value="1/1">الفصل 1/1</option><option value="1/2">الفصل 1/2</option><option value="1/3">الفصل 1/3</option><option value="1/4">الفصل 1/4</option><option value="1/5">الفصل 1/5</option>
+                        <option value="1/6">الفصل 1/6</option><option value="1/7">الفصل 1/7</option><option value="1/8">الفصل 1/8</option><option value="1/9">الفصل 1/9</option><option value="1/10">الفصل 1/10</option>
                     </select>
                 </div>
-                <div class="form-group checkbox-group">
-                    <label>
-                        <input type="checkbox" id="studentRedFlag">
-                        <span>Red Flag (يحتاج متابعة)</span>
-                    </label>
-                </div>
+                <div class="assigned-scope"><span>Red Flag</span><strong>يضعه المدرس فقط من حسابه</strong></div>
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" id="cancelStudent">إلغاء</button>
                     <button type="submit" class="btn-save">حفظ</button>
@@ -287,6 +303,12 @@
                     <input type="password" id="teacherPassword" required minlength="6">
                 </div>
                 <div class="form-group">
+                    <label>الفصول التي يدرسها *</label>
+                    <div id="teacherClasses" class="class-picker">
+                        <label><input type="checkbox" value="1/1"> 1/1</label><label><input type="checkbox" value="1/2"> 1/2</label><label><input type="checkbox" value="1/3"> 1/3</label><label><input type="checkbox" value="1/4"> 1/4</label><label><input type="checkbox" value="1/5"> 1/5</label><label><input type="checkbox" value="1/6"> 1/6</label><label><input type="checkbox" value="1/7"> 1/7</label><label><input type="checkbox" value="1/8"> 1/8</label><label><input type="checkbox" value="1/9"> 1/9</label><label><input type="checkbox" value="1/10"> 1/10</label>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label>المادة *</label>
                     <select id="teacherSubject" required>
                         <option value="">اختر المادة</option>
@@ -305,6 +327,19 @@
                     <button type="button" class="btn-cancel" id="cancelTeacher">إلغاء</button>
                     <button type="submit" class="btn-save">حفظ</button>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal حساب المديرة -->
+    <div id="principalModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header"><h3>إنشاء حساب مديرة</h3><button class="modal-close" id="closePrincipalModal">&times;</button></div>
+            <form id="principalForm" class="modal-form">
+                <div class="form-group"><label>اسم المديرة *</label><input id="principalName" required placeholder="مثال: أ. مديرة المدرسة"></div>
+                <div class="form-group"><label>البريد الإلكتروني *</label><input id="principalEmail" type="email" required></div>
+                <div class="form-group"><label>كلمة المرور *</label><input id="principalPassword" type="password" minlength="6" required></div>
+                <div class="form-actions"><button type="button" class="btn-cancel" id="cancelPrincipal">إلغاء</button><button type="submit" class="btn-save">إنشاء الحساب</button></div>
             </form>
         </div>
     </div>

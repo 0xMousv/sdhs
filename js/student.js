@@ -19,6 +19,7 @@ import {
     updateDoc,
     query,
     where,
+    setDoc,
     orderBy,
     Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -47,6 +48,9 @@ let allSubmissions = [];
 let allMaterials = [];
 let allAnnouncements = [];
 let allLeaderboard = [];
+let allStudentStats = [];
+const studentClass = () => currentUserData.class || '';
+const targetsMe = d => (Array.isArray(d.targetClasses) ? d.targetClasses.includes(studentClass()) : d.targetClass === studentClass());
 
 // =========================================
 // 3. Authentication Check
@@ -95,6 +99,14 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
+async function setupNotificationPermission(){
+  if(!('Notification' in window)) return;
+  const btn=document.getElementById('enableNotificationsBtn');
+  if(Notification.permission==='granted'){ if(btn) btn.remove(); try{await setDoc(doc(db,'users',currentUser.uid),{notificationsEnabled:true},{merge:true});}catch(e){} return; }
+  if(!btn) return;
+  btn.addEventListener('click',async()=>{ const p=await Notification.requestPermission(); if(p==='granted'){ try{await setDoc(doc(db,'users',currentUser.uid),{notificationsEnabled:true},{merge:true});}catch(e){} btn.textContent='تم تفعيل الإشعارات'; btn.disabled=true; } });
+}
+
 // =========================================
 // 4. Update Student UI
 // =========================================
@@ -113,6 +125,7 @@ function updateStudentUI() {
 function initializeStudent() {
     loadAllData();
     setupEventListeners();
+    setupNotificationPermission();
     
     const loadingState = document.getElementById('loadingState');
     if (loadingState) {
@@ -140,6 +153,8 @@ async function loadAllData() {
         renderAnnouncements();
         renderGrades();
         renderLeaderboard();
+        renderClassLeaderboard();
+        renderSchoolStats();
         
     } catch (error) {
         console.error('Error loading data:', error);
@@ -147,46 +162,33 @@ async function loadAllData() {
 }
 
 // =========================================
-// 9.5 Load Leaderboard (كل تسليمات كل الطلاب)
+// 9.5 Load Leaderboard + School Stats
 // =========================================
 async function loadLeaderboard() {
     try {
-        const submissionsSnapshot = await getDocs(collection(db, 'submissions'));
-        const byStudent = {};
-
-        submissionsSnapshot.forEach(docSnap => {
-            const sub = docSnap.data();
-            const id = sub.studentId;
-            if (!id) return;
-
-            if (!byStudent[id]) {
-                byStudent[id] = {
-                    studentId: id,
-                    studentName: sub.studentName || 'طالب',
-                    totalXP: 0,
-                    completedQuizzes: 0,
-                    percentageSum: 0
-                };
-            }
-
-            byStudent[id].totalXP += sub.xpEarned || 0;
-            byStudent[id].completedQuizzes += 1;
-            byStudent[id].percentageSum += sub.totalQuestions > 0
-                ? (sub.score / sub.totalQuestions) * 100
-                : 0;
-        });
-
-        allLeaderboard = Object.values(byStudent)
-            .map(s => ({
-                ...s,
-                avgScore: s.completedQuizzes > 0 ? Math.round(s.percentageSum / s.completedQuizzes) : 0
-            }))
-            .sort((a, b) => b.totalXP - a.totalXP);
-
-    } catch (error) {
-        console.error('Error loading leaderboard:', error);
-    }
+        const statsSnapshot = await getDocs(collection(db, 'studentStats'));
+        allStudentStats = statsSnapshot.docs.map(d => ({ id:d.id, ...d.data() }));
+        allLeaderboard = allStudentStats
+            .filter(s => s.class === studentClass())
+            .sort((a,b) => (b.totalXP||0) - (a.totalXP||0));
+    } catch (error) { console.error('Error loading leaderboard:', error); }
 }
+
+function renderClassLeaderboard() {
+    const el=document.getElementById('classLeaderboard');
+    if(!el) return;
+    document.getElementById('classNameDashboard').textContent=studentClass() ? `الفصل ${studentClass()}` : 'فصلك';
+    if(!allLeaderboard.length){el.innerHTML='<div class="loading-item">لا توجد نتائج كافية بعد</div>';return;}
+    el.innerHTML=allLeaderboard.slice(0,10).map((s,i)=>`<div class="mini-rank-row ${s.studentId===currentUser.uid?'is-me':''}"><span class="mini-rank">${i+1}</span><div><strong>${escStudent(s.studentName||'طالب')}${s.studentId===currentUser.uid?' (أنت)':''}</strong><small>${s.completedQuizzes||0} كويز • متوسط ${Math.round(s.avgScore||0)}%</small></div><b>${s.totalXP||0} XP</b></div>`).join('');
+}
+function renderSchoolStats(){
+    const el=document.getElementById('schoolStatsDashboard'); if(!el)return;
+    const totalStudents=new Set(allStudentStats.map(x=>x.studentId||x.id)).size;
+    const classCounts={}; allStudentStats.forEach(x=>{if(x.class)classCounts[x.class]=(classCounts[x.class]||0)+1;});
+    const avg=allStudentStats.length?Math.round(allStudentStats.reduce((t,x)=>t+(x.avgScore||0),0)/allStudentStats.length):0;
+    el.innerHTML=`<div class="school-stat"><span>الطلاب</span><b>${totalStudents}</b></div><div class="school-stat"><span>الفصول</span><b>10</b></div><div class="school-stat"><span>متوسط المدرسة</span><b>${avg}%</b></div><div class="school-stat"><span>طلاب فصلك</span><b>${classCounts[studentClass()]||0}</b></div>`;
+}
+function escStudent(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 
 // =========================================
 // 9.6 Render Leaderboard
@@ -223,22 +225,14 @@ function renderLeaderboard() {
 // =========================================
 async function loadQuizzes() {
     try {
-        const quizzesSnapshot = await getDocs(
-            query(
-                collection(db, 'quizzes'),
-                where('targetClass', '==', currentUserData.class || '1st Secondary')
-            )
-        );
-        
+        const snap = await getDocs(query(collection(db, 'quizzes'), where('targetClasses', 'array-contains', studentClass())));
         allQuizzes = [];
-        quizzesSnapshot.forEach(docSnap => {
-            allQuizzes.push({ id: docSnap.id, ...docSnap.data() });
+        snap.forEach(docSnap => {
+            const d = { id: docSnap.id, ...docSnap.data() };
+            if (targetsMe(d)) allQuizzes.push(d);
         });
-        
         console.log('Loaded quizzes:', allQuizzes.length);
-    } catch (error) {
-        console.error('Error loading quizzes:', error);
-    }
+    } catch (error) { console.error('Error loading quizzes:', error); }
 }
 
 // =========================================
@@ -269,22 +263,14 @@ async function loadSubmissions() {
 // =========================================
 async function loadMaterials() {
     try {
-        const materialsSnapshot = await getDocs(
-            query(
-                collection(db, 'materials'),
-                where('targetClass', '==', currentUserData.class || '1st Secondary')
-            )
-        );
-        
+        const snap = await getDocs(query(collection(db, 'materials'), where('targetClasses', 'array-contains', studentClass())));
         allMaterials = [];
-        materialsSnapshot.forEach(docSnap => {
-            allMaterials.push({ id: docSnap.id, ...docSnap.data() });
+        snap.forEach(docSnap => {
+            const d = { id: docSnap.id, ...docSnap.data() };
+            if (targetsMe(d)) allMaterials.push(d);
         });
-        
         console.log('Loaded materials:', allMaterials.length);
-    } catch (error) {
-        console.error('Error loading materials:', error);
-    }
+    } catch (error) { console.error('Error loading materials:', error); }
 }
 
 // =========================================
@@ -292,22 +278,14 @@ async function loadMaterials() {
 // =========================================
 async function loadAnnouncements() {
     try {
-        const announcementsSnapshot = await getDocs(
-            query(
-                collection(db, 'announcements'),
-                where('targetClass', '==', currentUserData.class || '1st Secondary')
-            )
-        );
-        
+        const snap = await getDocs(query(collection(db, 'announcements'), where('targetClasses', 'array-contains', studentClass())));
         allAnnouncements = [];
-        announcementsSnapshot.forEach(docSnap => {
-            allAnnouncements.push({ id: docSnap.id, ...docSnap.data() });
+        snap.forEach(docSnap => {
+            const d = { id: docSnap.id, ...docSnap.data() };
+            if (targetsMe(d)) allAnnouncements.push(d);
         });
-        
         console.log('Loaded announcements:', allAnnouncements.length);
-    } catch (error) {
-        console.error('Error loading announcements:', error);
-    }
+    } catch (error) { console.error('Error loading announcements:', error); }
 }
 
 // =========================================
@@ -571,7 +549,7 @@ function renderAnnouncements() {
             <div class="notification-card ${isUnread ? 'unread' : ''}" onclick="markAsRead('${notif.id}')">
                 <div class="notification-header">
                     <div>
-                        <h3 class="notification-title">${notif.title || 'بدون عنوان'}</h3>
+                        <div><h3 class="notification-title">${notif.title || 'بدون عنوان'}</h3><div class="notification-sender">${notif.teacherName ? `إشعار من المستر ${notif.teacherName}` : (notif.principalName ? `إشعار من إدارة المدرسة - ${notif.principalName}` : 'إشعار من إدارة المدرسة')} ${notif.subject ? `• ${notif.subject}` : ''}</div></div>
                         <div class="notification-time">${date}</div>
                     </div>
                     ${isUnread ? '<span class="unread-dot"></span>' : ''}
@@ -761,7 +739,7 @@ function setupEventListeners() {
             localStorage.removeItem('userEmail');
             localStorage.removeItem('currentQuizId');
             localStorage.removeItem('currentQuizData');
-            window.location.href = '../login.html';
+            window.location.href = 'login.html';
         }
     });
 }

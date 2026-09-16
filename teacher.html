@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة المدرس - مدرسة السادات الثانوية بنين</title>
-    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="icon" type="image/png" href="assets/logo.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/teacher.css">
 </head>
@@ -23,7 +23,7 @@
             <div class="user-area">
                 <div class="teacher-info">
                     <span class="teacher-name" id="teacherName">جاري التحميل...</span>
-                    <span class="teacher-subject" id="teacherSubject">-</span>
+                    <span class="teacher-subject" id="teacherSubject">-</span><span class="teacher-classes-mini" id="assignedClassesText">-</span>
                 </div>
                 <button id="theme-toggle" class="theme-btn"></button>
                 <button id="logoutBtn" class="logout-btn">خروج</button>
@@ -72,7 +72,7 @@
                 <div class="section-header">
                     <div>
                         <h2 class="section-title">مرحباً، <span id="welcomeName">أستاذ</span> 👋</h2>
-                        <p class="section-subtitle">نظرة عامة على نشاطك مع طلاب الصف الأول الثانوي</p>
+                        <p class="section-subtitle">نظرة عامة على نشاطك مع الفصول المسندة إليك</p>
                     </div>
                 </div>
 
@@ -95,14 +95,14 @@
                         <div class="stat-icon">🎓</div>
                         <div class="stat-info">
                             <span class="stat-value" id="totalStudents">0</span>
-                            <span class="stat-label">طالب في الصف</span>
+                            <span class="stat-label">طلاب الفصول المسندة</span>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon"></div>
                         <div class="stat-info">
-                            <span class="stat-value" id="avgScore">0%</span>
-                            <span class="stat-label">متوسط الدرجات</span>
+                            <span class="stat-value" id="teacherClassesCount">0</span>
+                            <span class="stat-label">فصول مسندة</span>
                         </div>
                     </div>
                 </div>
@@ -128,7 +128,7 @@
                 <div class="section-header">
                     <div>
                         <h2 class="section-title">الشروحات والمحتوى التعليمي</h2>
-                        <p class="section-subtitle">أضف شروحات ومواد تعليمية لطلاب الصف الأول الثانوي</p>
+                        <p class="section-subtitle">كل درس تنشره يصل تلقائيًا إلى كل الفصول المسندة لك من الإدارة</p>
                     </div>
                     <button class="btn-add" id="addMaterialBtn">+ إضافة شرح جديد</button>
                 </div>
@@ -142,7 +142,7 @@
                 <div class="section-header">
                     <div>
                         <h2 class="section-title">إدارة الكويزات</h2>
-                        <p class="section-subtitle">إنشاء وإدارة الكويزات للصف الأول الثانوي</p>
+                        <p class="section-subtitle">الكويز يصل تلقائيًا إلى الفصول المسندة لك — لا يمكنك تغيير الفصول من حساب المدرس</p>
                     </div>
                     <button class="btn-add" id="addQuizBtn">+ إنشاء كويز جديد</button>
                 </div>
@@ -156,7 +156,7 @@
                 <div class="section-header">
                     <div>
                         <h2 class="section-title">طلاب الصف الأول الثانوي</h2>
-                        <p class="section-subtitle">عرض ومتابعة تقدم الطلاب</p>
+                        <p class="section-subtitle">طلاب الفصول المسندة لك فقط — والمدرس هو المسؤول عن وضع وإزالة Red Flag</p>
                     </div>
                 </div>
                 <div class="search-bar">
@@ -167,14 +167,15 @@
                         <thead>
                             <tr>
                                 <th>الاسم</th>
-                                <th>البريد الإلكتروني</th>
+                                <th>الفصل</th>
                                 <th>متوسط الدرجات</th>
                                 <th>الكويزات المكتملة</th>
                                 <th>الحالة</th>
+                                <th>Red Flag</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTableBody">
-                            <tr><td colspan="5" class="loading-cell">جاري تحميل البيانات...</td></tr>
+                            <tr><td colspan="6" class="loading-cell">جاري تحميل البيانات...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -204,37 +205,44 @@
                 <button class="modal-close" id="closeMaterialModal">&times;</button>
             </div>
             <form id="materialForm" class="modal-form">
-                <div class="form-group">
-                    <label>عنوان الشرح *</label>
-                    <input type="text" id="materialTitle" placeholder="مثال: شرح المعادلات التربيعية" required>
-                </div>
+                <div class="lesson-required-note"><span>إجباري</span><strong>العنوان + شرح الدرس</strong><small>أي إضافات أخرى اختيارية.</small></div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>نوع المحتوى *</label>
-                        <select id="materialType" required>
-                            <option value="">اختر النوع</option>
-                            <option value="text">نص مكتوب</option>
-                            <option value="video">فيديو (YouTube)</option>
-                            
-                        </select>
+                        <label>عنوان الدرس *</label>
+                        <input type="text" id="materialTitle" placeholder="مثال: شرح الدرس الأول" required>
                     </div>
                     <div class="form-group">
-                        <label>المادة *</label>
+                        <label>المادة</label>
                         <input type="text" id="materialSubject" readonly>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="materialUrl">رابط فيديو YouTube</label>
+                    <label>شرح الدرس *</label>
+                    <textarea id="materialDescription" rows="7" placeholder="اكتب شرح الدرس بالتفصيل..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>إضافات اختيارية</label>
+                    <select id="materialType">
+                        <option value="">بدون إضافة</option>
+                        <option value="text">نص إضافي</option>
+                        <option value="video">رابط YouTube</option>
+                        <option value="file">PDF أو صورة</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="youtubeGroup">
+                    <label>رابط YouTube</label>
                     <input type="url" id="materialUrl" placeholder="https://www.youtube.com/watch?v=..." inputmode="url">
                 </div>
-                <div class="form-group">
-                    <label>وصف الشرح *</label>
-                    <textarea id="materialDescription" rows="4" placeholder="اكتب وصفاً تفصيلياً للشرح..." required></textarea>
+                <div class="form-group hidden" id="textGroup">
+                    <label>النص الإضافي</label>
+                    <textarea id="materialContent" rows="5" placeholder="أي ملاحظات أو شرح إضافي..."></textarea>
                 </div>
-                <div class="form-group">
-                    <label for="materialContent">نص الشرح</label>
-                    <textarea id="materialContent" rows="6" placeholder="اكتب شرح الدرس هنا..."></textarea>
+                <div class="form-group hidden" id="fileGroup">
+                    <label>PDF أو صورة</label>
+                    <input type="file" id="materialFile" accept="application/pdf,image/*">
+                    <small>اختياري ويُرفع إلى Cloudinary.</small>
                 </div>
+                <div class="assigned-scope"><span>سيصل إلى:</span><strong id="assignedClassesPreview">—</strong></div>
                 <div class="form-group checkbox-group">
                     <label>
                         <input type="checkbox" id="materialFeatured">
@@ -274,6 +282,11 @@
                             <label>نقاط XP *</label>
                             <input type="number" id="quizXP" min="10" max="500" value="50" required>
                         </div>
+                    </div>
+                    <div class="assigned-scope"><span>سيصل إلى:</span><strong id="assignedQuizClasses">—</strong></div>
+                    <div class="form-group">
+                        <label>مدة الحل بالدقائق *</label>
+                        <input type="number" id="quizDuration" min="1" max="180" value="10" required>
                     </div>
                     <div class="form-group checkbox-group">
                         <label>
@@ -433,6 +446,7 @@
                     <label>عنوان الإشعار *</label>
                     <input type="text" id="announcementTitle" required>
                 </div>
+                <div class="assigned-scope"><span>سيصل إلى:</span><strong id="announcementClassesPreview">—</strong></div>
                 <div class="form-group">
                     <label>محتوى الإشعار *</label>
                     <textarea id="announcementContent" rows="5" required></textarea>

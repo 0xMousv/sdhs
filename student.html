@@ -17,7 +17,7 @@
                 <span class="alert-icon"></span>
                 <div class="alert-text">
                     <strong>تنبيه مهم!</strong>
-                    <p>لديك كويزات اختيارية يجب حلها لتحسين مستواك. يرجى متابعتها في قسم الكويزات.</p>
+                    <p>قام أحد المدرسين بوضع علامة Red Flag على حسابك. تابع الشروحات والكويزات المطلوبة وتواصل مع مدرسك عند الحاجة.</p>
                 </div>
             </div>
         </div>
@@ -128,19 +128,20 @@
                     </div>
                 </div>
 
+                <div class="dashboard-grid dashboard-levels">
+                    <div class="dashboard-card level-card class-level-card">
+                        <div class="level-card-head"><div><span class="level-kicker">مستوى الفصل</span><h3 class="card-title">ترتيب <span id="classNameDashboard">فصلك</span></h3></div><span class="level-icon">🏫</span></div>
+                        <p class="level-note">الترتيب داخل فصلك فقط حسب XP.</p>
+                        <div id="classLeaderboard" class="mini-leaderboard"><div class="loading-item">جاري التحميل...</div></div>
+                    </div>
+                    <div class="dashboard-card level-card school-level-card">
+                        <div class="level-card-head"><div><span class="level-kicker">مستوى المدرسة</span><h3 class="card-title">إحصائيات المدرسة</h3></div><span class="level-icon">📊</span></div>
+                        <div id="schoolStatsDashboard" class="school-stat-grid"><div class="loading-item">جاري التحميل...</div></div>
+                    </div>
+                </div>
                 <div class="dashboard-grid">
-                    <div class="dashboard-card">
-                        <h3 class="card-title">الكويزات القادمة</h3>
-                        <div class="recent-list" id="upcomingQuizzes">
-                            <div class="loading-item">جاري التحميل...</div>
-                        </div>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3 class="card-title">آخر إنجازاتك</h3>
-                        <div class="recent-list" id="recentAchievements">
-                            <div class="loading-item">جاري التحميل...</div>
-                        </div>
-                    </div>
+                    <div class="dashboard-card"><h3 class="card-title">الكويزات القادمة</h3><div class="recent-list" id="upcomingQuizzes"><div class="loading-item">جاري التحميل...</div></div></div>
+                    <div class="dashboard-card"><h3 class="card-title">آخر إنجازاتك</h3><div class="recent-list" id="recentAchievements"><div class="loading-item">جاري التحميل...</div></div></div>
                 </div>
             </section>
 
@@ -172,6 +173,7 @@
 
             <!-- قسم الإشعارات -->
             <section id="notifications" class="content-section">
+                <button id="enableNotificationsBtn" class="btn-add" type="button">تفعيل إشعارات الجهاز</button>
                 <div class="section-header">
                     <h2 class="section-title">الإشعارات</h2>
                     <p class="section-subtitle">آخر التحديثات والإعلانات</p>

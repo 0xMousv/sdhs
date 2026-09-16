@@ -55,7 +55,7 @@ togglePasswordBtn.addEventListener('click', () => {
 // =========================================
 // لا نعتمد على شكل الإيميل أو دومين وهمي لتحديد الصلاحية.
 // بعد نجاح Firebase Authentication نقرأ users/{uid} ونستخدم role المسجل هناك.
-const ALLOWED_ROLES = new Set(['admin', 'teacher', 'student']);
+const ALLOWED_ROLES = new Set(['admin', 'teacher', 'student', 'principal']);
 
 function normalizeRole(role) {
     const value = String(role || '').trim().toLowerCase();

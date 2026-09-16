@@ -117,12 +117,12 @@ onAuthStateChanged(auth, async (user) => {
                 } else {
                     alert('ليس لديك صلاحية الوصول لهذه الصفحة');
                     await signOut(auth);
-                    window.location.href = '../login.html';
+                    window.location.href = 'login.html';
                 }
             } else {
                 alert('خطأ في بيانات المستخدم');
                 await signOut(auth);
-                window.location.href = '../login.html';
+                window.location.href = 'login.html';
             }
         } catch (error) {
             console.error('Error:', error);
@@ -130,7 +130,7 @@ onAuthStateChanged(auth, async (user) => {
             window.location.href = 'student.html';
         }
     } else {
-        window.location.href = '../login.html';
+        window.location.href = 'login.html';
     }
 });
 
@@ -376,15 +376,14 @@ function updateProgress() {
 // 14. Timer System
 // =========================================
 function startTimer() {
-    // حساب الوقت المتبقي
-    if (currentQuiz.deadline) {
-        const now = new Date();
-        const deadline = new Date(currentQuiz.deadline);
-        timeRemaining = Math.max(0, Math.floor((deadline - now) / 1000));
-    } else {
-        // افتراضي: 30 دقيقة
-        timeRemaining = 30 * 60;
-    }
+    const nowMs = Date.now();
+    const attemptKey = `quizAttemptStart_${currentQuiz.id}_${currentUser?.uid || 'student'}`;
+    let attemptStart = Number(localStorage.getItem(attemptKey));
+    if (!attemptStart || attemptStart > nowMs) { attemptStart = nowMs; localStorage.setItem(attemptKey, String(attemptStart)); }
+    const durationSeconds = Math.max(60, Number(currentQuiz.durationMinutes || 10) * 60);
+    const personalEnd = attemptStart + durationSeconds * 1000;
+    const globalEnd = currentQuiz.deadline ? new Date(currentQuiz.deadline).getTime() : personalEnd;
+    timeRemaining = Math.max(0, Math.floor((Math.min(personalEnd, globalEnd) - nowMs) / 1000));
 
     updateTimerDisplay();
 
@@ -394,7 +393,8 @@ function startTimer() {
 
         if (timeRemaining <= 0) {
             clearInterval(timerInterval);
-            alert('⏰ انتهى وقت الكويز! سيتم إرسال إجاباتك تلقائياً.');
+            alert('⏰ انتهى وقت المحاولة. سيتم إرسال إجاباتك تلقائياً.');
+            localStorage.removeItem(attemptKey);
             submitQuiz();
         }
     }, 1000);
@@ -475,6 +475,7 @@ async function submitQuiz() {
         // حتى لو أكتر من طالب بيسلم في نفس اللحظة بالظبط
         const quizRef = doc(db, 'quizzes', currentQuiz.id);
         const submissionRef = doc(collection(db, 'submissions'));
+        const studentStatsRef = doc(db, 'studentStats', currentUser.uid);
 
         let solveRank = null;
         let decayMultiplier = null;
@@ -483,7 +484,9 @@ async function submitQuiz() {
 
         await runTransaction(db, async (transaction) => {
             const quizSnap = await transaction.get(quizRef);
+            const statsSnap = await transaction.get(studentStatsRef);
             const quizData = quizSnap.exists() ? quizSnap.data() : {};
+            const oldStats = statsSnap.exists() ? statsSnap.data() : {};
             const previousSolves = quizData.solvedCount || 0;
             const previousSubmissions = quizData.submissionsCount || 0;
 
@@ -511,6 +514,13 @@ async function submitQuiz() {
             };
 
             transaction.set(submissionRef, submissionData);
+            const completedQuizzes = (oldStats.completedQuizzes || 0) + 1;
+            const totalXP = (oldStats.totalXP || 0) + xpEarned;
+            const totalPercentage = (oldStats.totalPercentage || 0) + percentage;
+            transaction.set(studentStatsRef, {
+                studentId: currentUser.uid, studentName: currentUserData.name || 'طالب', studentClass: currentUserData.class || '', class: currentUserData.class || '',
+                completedQuizzes, totalXP, totalPercentage, avgScore: Math.round(totalPercentage / completedQuizzes), updatedAt: new Date().toISOString()
+            }, { merge: true });
             transaction.update(quizRef, {
                 solvedCount: didSolve ? solveRank : previousSolves,
                 submissionsCount: previousSubmissions + 1

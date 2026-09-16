@@ -986,3 +986,14 @@ button, input, select, textarea { touch-action: manipulation; }
     .material-actions { flex-direction: column; }
     .material-actions button, .material-actions a { width: 100%; }
 }
+
+
+/* Mobile-first platform enhancements */
+.class-picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:8px;padding:10px;border:1px solid var(--border-color,#ddd);border-radius:12px;background:var(--surface-color,#fff)}
+.class-picker label{display:flex;align-items:center;gap:6px;padding:9px 7px;border-radius:9px;background:rgba(127,127,127,.08);cursor:pointer;font-size:.9rem}
+.class-picker input{accent-color:currentColor}
+input[type=file]{width:100%;padding:10px;border:1px dashed var(--border-color,#bbb);border-radius:10px}
+@media(max-width:700px){.container{width:100%;padding-inline:12px}.modal-content{width:calc(100vw - 18px);max-height:94vh;overflow:auto}.form-row,.deadline-grid{grid-template-columns:1fr!important}.data-table{min-width:680px}.table-container{overflow-x:auto;-webkit-overflow-scrolling:touch}.class-picker{grid-template-columns:repeat(3,1fr)}}
+
+/* ===== Dashboard levels ===== */
+.dashboard-levels{margin-top:18px}.level-card{min-height:260px}.level-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.level-kicker{font-size:.72rem;color:var(--accent-color);font-weight:800}.level-icon{font-size:2rem}.level-note{font-size:.85rem;color:var(--text-secondary);margin:5px 0 14px}.mini-leaderboard{display:grid;gap:7px}.mini-rank-row{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:9px;padding:9px;border-radius:12px;background:var(--bg-tertiary)}.mini-rank-row.is-me{outline:1px solid var(--accent-color);background:rgba(37,99,235,.07)}.mini-rank{font-weight:900;text-align:center}.mini-rank-row strong,.mini-rank-row small{display:block}.mini-rank-row small{font-size:.7rem;color:var(--text-secondary)}.mini-rank-row b{font-size:.75rem}.school-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.school-stat{padding:16px;border:1px solid var(--border-color);border-radius:14px;background:var(--bg-tertiary)}.school-stat span,.school-stat b{display:block}.school-stat span{font-size:.78rem;color:var(--text-secondary)}.school-stat b{font-size:1.35rem;margin-top:4px}.notification-sender{font-size:.75rem;color:var(--accent-color);font-weight:700;margin-top:2px}

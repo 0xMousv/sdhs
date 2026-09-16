@@ -1089,3 +1089,14 @@ button, input, select, textarea { touch-action: manipulation; }
     .material-actions { flex-direction: column; }
     .material-actions button, .material-actions a { width: 100%; }
 }
+
+
+/* Mobile-first platform enhancements */
+.class-picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:8px;padding:10px;border:1px solid var(--border-color,#ddd);border-radius:12px;background:var(--surface-color,#fff)}
+.class-picker label{display:flex;align-items:center;gap:6px;padding:9px 7px;border-radius:9px;background:rgba(127,127,127,.08);cursor:pointer;font-size:.9rem}
+.class-picker input{accent-color:currentColor}
+input[type=file]{width:100%;padding:10px;border:1px dashed var(--border-color,#bbb);border-radius:10px}
+@media(max-width:700px){.container{width:100%;padding-inline:12px}.modal-content{width:calc(100vw - 18px);max-height:94vh;overflow:auto}.form-row,.deadline-grid{grid-template-columns:1fr!important}.data-table{min-width:680px}.table-container{overflow-x:auto;-webkit-overflow-scrolling:touch}.class-picker{grid-template-columns:repeat(3,1fr)}}
+
+/* ===== Admin final polish ===== */
+.class-chips{display:flex;gap:5px;flex-wrap:wrap}.class-chips span{background:rgba(37,99,235,.08);color:var(--accent-color,#2563eb);padding:4px 8px;border-radius:999px;font-size:.72rem;font-weight:700}.permission-list{display:flex;flex-wrap:wrap;gap:8px}.permission-list span{padding:8px 11px;border-radius:10px;background:rgba(22,163,74,.08);color:var(--success-color,#16a34a);font-size:.8rem;font-weight:700}.principal-info-card{margin-bottom:15px}

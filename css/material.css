@@ -1,1 +1,127 @@
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Tajawal,Arial,sans-serif;background:#f8fafc;color:#0f172a;overflow-x:hidden}.topbar{min-height:70px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 max(16px,6%);position:sticky;top:0;z-index:5}.brand{font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.back{color:#2563eb;text-decoration:none;font-weight:700;white-space:nowrap}.lesson-page{max-width:1000px;margin:30px auto;padding:0 16px}.lesson{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:32px;box-shadow:0 10px 30px rgba(15,23,42,.06)}.lesson-head h1{font-size:2rem;line-height:1.4;margin:12px 0}.badge{display:inline-block;background:#eff6ff;color:#2563eb;padding:6px 12px;border-radius:999px;font-weight:700}.meta,.description{color:#64748b}.id-line{margin-top:8px;font-size:.85rem;color:#94a3b8;direction:ltr;text-align:right;word-break:break-all}.description{font-size:1.05rem;line-height:1.9}.video-wrap{margin-top:28px;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#0f172a}.video-wrap iframe{width:100%;height:100%;border:0}.text-content{margin-top:28px;line-height:2;font-size:1.08rem;white-space:pre-wrap;overflow-wrap:anywhere}.text-content h2{font-size:1.25rem}.state{text-align:center;padding:80px 20px;color:#64748b}.error{color:#dc2626}.hidden{display:none!important}.empty{padding:30px;text-align:center;color:#64748b;background:#f8fafc;border-radius:12px}@media(max-width:650px){.topbar{min-height:58px;padding:0 12px}.lesson-page{margin:14px auto;padding:0 10px}.lesson{padding:18px;border-radius:14px}.lesson-head h1{font-size:1.4rem}.description{font-size:.96rem}.video-wrap{margin-top:20px;border-radius:10px}.text-content{font-size:1rem;line-height:1.9}.state{padding:60px 15px}}@media(max-width:380px){.topbar{align-items:flex-start;padding-top:12px;padding-bottom:12px;flex-direction:column}.back{font-size:.9rem}}
+/* =========================================
+   1. Variables & Theme (matches rest of site)
+   ========================================= */
+:root {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
+    --accent-color: #2563eb;
+    --accent-hover: #1d4ed8;
+    --success-color: #16a34a;
+    --warning-color: #f59e0b;
+    --error-color: #dc2626;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 20px 40px -10px rgba(15, 23, 42, 0.15);
+    --radius: 16px;
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Tajawal',Arial,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden}
+
+/* =========================================
+   2. Top bar
+   ========================================= */
+.topbar{min-height:72px;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 max(16px,5%);position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;min-width:0;overflow:hidden}
+.brand img{width:38px;height:38px;border-radius:10px;object-fit:cover;flex-shrink:0}
+.brand span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.back{color:var(--accent-color);text-decoration:none;font-weight:700;white-space:nowrap;flex-shrink:0}
+.discuss-btn{display:flex;align-items:center;gap:8px;border:0;background:linear-gradient(135deg,var(--accent-color),var(--accent-hover));color:#fff;font-weight:800;font-family:inherit;padding:11px 18px;border-radius:999px;cursor:pointer;box-shadow:0 8px 20px rgba(37,99,235,.3);transition:var(--transition);flex-shrink:0}
+.discuss-btn:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(37,99,235,.38)}
+
+/* =========================================
+   3. Layout
+   ========================================= */
+.lesson-page{max-width:900px;margin:32px auto 70px;padding:0 16px}
+.lesson{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:24px;padding:0;box-shadow:var(--shadow-lg);overflow:hidden}
+
+.lesson-head{padding:34px 32px;background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;position:relative}
+.lesson-head::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 100% 0%,rgba(255,255,255,.08),transparent 55%)}
+.lesson-head .badge{position:relative;display:inline-block;background:rgba(255,255,255,.14);color:#dbeafe;padding:7px 14px;border-radius:999px;font-weight:700;font-size:.85rem;backdrop-filter:blur(6px)}
+.lesson-head h1{position:relative;font-size:clamp(1.5rem,4vw,2.2rem);line-height:1.4;margin:14px 0 6px}
+.meta{position:relative;color:#bfdbfe;font-size:.95rem}
+.id-line{position:relative;margin-top:10px;font-size:.75rem;color:#93a3c2;direction:ltr;text-align:right;word-break:break-all;opacity:.7}
+
+.description{font-size:1.05rem;line-height:1.95;color:var(--text-secondary);background:var(--bg-tertiary);margin:26px 32px 0;padding:20px;border-radius:var(--radius);border:1px solid var(--border-color);white-space:pre-wrap}
+
+/* =========================================
+   4. Content sections
+   ========================================= */
+.video-wrap{margin:22px 32px 0;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-md)}
+.video-wrap iframe{width:100%;aspect-ratio:16/9;border:0;display:block;background:#0f172a}
+
+.image-wrap{margin:22px 32px 0;text-align:center}
+.image-wrap a{display:block;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-md);border:1px solid var(--border-color);line-height:0}
+.image-wrap img{width:100%;max-height:560px;object-fit:contain;background:var(--bg-tertiary);display:block}
+.image-wrap .file-link{margin-top:14px}
+
+.file-section{margin:22px 32px 0}
+.file-card{display:flex;align-items:center;gap:16px;padding:18px 20px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:var(--radius)}
+.file-icon{width:52px;height:52px;flex-shrink:0;display:grid;place-items:center;font-size:1.6rem;background:var(--bg-secondary);border-radius:14px;box-shadow:var(--shadow-sm)}
+.file-info{flex:1;min-width:0}
+.file-name{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-card .file-link{flex-shrink:0;margin:0}
+
+.file-link{display:inline-block;padding:12px 20px;border-radius:12px;background:var(--accent-color);color:#fff!important;text-decoration:none;font-weight:800;text-align:center;transition:var(--transition)}
+.file-link:hover{background:var(--accent-hover);transform:translateY(-1px)}
+
+.text-content{margin:22px 32px 0;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:var(--radius);padding:22px}
+.text-content h2{margin:0 0 12px;font-size:1.2rem}
+.text-content #content{white-space:pre-wrap;overflow-wrap:anywhere;line-height:2;font-size:1.02rem;color:var(--text-secondary)}
+
+.lesson > .description:last-child,.lesson > section:last-child,.lesson > .empty:last-child{margin-bottom:32px}
+.empty{margin:22px 32px 32px;padding:34px;text-align:center;color:var(--text-tertiary);background:var(--bg-tertiary);border-radius:var(--radius);border:1px dashed var(--border-color)}
+
+/* =========================================
+   5. States (loading / error)
+   ========================================= */
+.state{text-align:center;padding:90px 20px;color:var(--text-tertiary);display:flex;flex-direction:column;align-items:center;gap:16px;font-weight:600}
+.spinner{width:38px;height:38px;border-radius:50%;border:4px solid var(--border-color);border-top-color:var(--accent-color);animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error{color:var(--error-color);font-weight:800}
+.hidden{display:none!important}
+.muted{color:var(--text-tertiary);font-size:.85rem}
+
+/* =========================================
+   6. Discussion modal
+   ========================================= */
+.modal{position:fixed;inset:0;background:rgba(2,6,23,.55);display:grid;place-items:center;padding:18px;z-index:50}
+.modal.hidden{display:none}
+.modal-box{position:relative;background:var(--bg-secondary);width:min(520px,100%);max-height:min(640px,90vh);display:flex;flex-direction:column;border-radius:22px;padding:26px;box-shadow:0 25px 80px rgba(0,0,0,.3)}
+.close{position:absolute;left:16px;top:14px;border:0;background:none;font-size:1.8rem;line-height:1;cursor:pointer;color:var(--text-tertiary)}
+.chat-title{font-weight:800;font-size:1.15rem;margin-bottom:14px}
+.chat-messages{flex:1;display:flex;flex-direction:column;gap:10px;overflow:auto;padding-bottom:6px}
+.chat-msg{display:flex;flex-direction:column;align-items:flex-start;gap:3px;background:var(--bg-tertiary);padding:10px 13px;border-radius:14px;max-width:85%}
+.chat-msg.mine{align-self:flex-end;background:rgba(37,99,235,.12)}
+.chat-msg b{font-size:.78rem;color:var(--accent-color)}
+.chat-msg span{white-space:pre-wrap;overflow-wrap:anywhere}
+.chat-msg small{opacity:.6;font-size:.68rem}
+.chat-form{display:flex;gap:8px;margin-top:14px}
+.chat-form input{flex:1;min-width:0;border:1px solid var(--border-color);border-radius:12px;padding:12px;font:inherit;background:var(--bg-primary);color:var(--text-primary)}
+.chat-form button{padding:0 20px;border:0;border-radius:12px;cursor:pointer;background:var(--accent-color);color:#fff;font-weight:800;font-family:inherit}
+.chat-form button:hover{background:var(--accent-hover)}
+
+/* =========================================
+   7. Responsive
+   ========================================= */
+@media(max-width:650px){
+  .topbar{min-height:60px;padding:0 12px;gap:8px}
+  .brand span{font-size:.85rem}
+  .discuss-btn span{display:none}
+  .discuss-btn{padding:10px;border-radius:50%;width:42px;height:42px;justify-content:center}
+  .lesson-page{margin:16px auto;padding:0 10px}
+  .lesson-head{padding:24px 20px}
+  .description,.video-wrap,.image-wrap,.file-section,.text-content,.empty{margin-left:20px;margin-right:20px}
+  .state{padding:60px 15px}
+  .file-card{flex-wrap:wrap}
+}
+@media(max-width:380px){
+  .back{font-size:.9rem}
+}
