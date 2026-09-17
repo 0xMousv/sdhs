@@ -7,7 +7,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { 
     getAuth, 
     onAuthStateChanged, 
-    signOut 
+    signOut,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { 
     getFirestore, 
@@ -49,6 +52,9 @@ let allMaterials = [];
 let allAnnouncements = [];
 let allLeaderboard = [];
 let allStudentStats = [];
+let classBoard = [];
+let schoolBoard = [];
+let leaderboardScope = 'class';
 const studentClass = () => currentUserData.class || '';
 const targetsMe = d => (Array.isArray(d.targetClasses) ? d.targetClasses.includes(studentClass()) : d.targetClass === studentClass());
 
@@ -152,7 +158,6 @@ async function loadAllData() {
         renderMaterials();
         renderAnnouncements();
         renderGrades();
-        renderLeaderboard();
         renderClassLeaderboard();
         renderSchoolStats();
         
@@ -168,9 +173,11 @@ async function loadLeaderboard() {
     try {
         const statsSnapshot = await getDocs(collection(db, 'studentStats'));
         allStudentStats = statsSnapshot.docs.map(d => ({ id:d.id, ...d.data() }));
-        allLeaderboard = allStudentStats
+        classBoard = allStudentStats
             .filter(s => s.class === studentClass())
             .sort((a,b) => (b.totalXP||0) - (a.totalXP||0));
+        schoolBoard = [...allStudentStats].sort((a,b) => (b.totalXP||0) - (a.totalXP||0));
+        allLeaderboard = classBoard; // متوافق مع الأماكن القديمة اللي لسه بتستخدمها (مثل المني ودجت)
     } catch (error) { console.error('Error loading leaderboard:', error); }
 }
 
@@ -191,13 +198,84 @@ function renderSchoolStats(){
 function escStudent(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 
 // =========================================
-// 9.6 Render Leaderboard
+// 9.7 Profile Modal (بيانات + تغيير الباسورد + إحصائيات)
 // =========================================
-function renderLeaderboard() {
+function bestSubjectByXP() {
+    const bySubject = {};
+    allSubmissions.forEach(sub => {
+        const subject = sub.subject || (allQuizzes.find(q => q.id === sub.quizId)?.subject) || '';
+        if (!subject) return;
+        bySubject[subject] = (bySubject[subject] || 0) + (sub.xpEarned || 0);
+    });
+    let best = null, bestXp = -1;
+    Object.entries(bySubject).forEach(([subj, xp]) => { if (xp > bestXp) { bestXp = xp; best = subj; } });
+    return best ? { subject: best, xp: bestXp } : null;
+}
+
+function openProfileModal() {
+    document.getElementById('profileNameField').textContent = currentUserData.name || '-';
+    document.getElementById('profileEmailField').textContent = currentUserData.email || currentUser.email || '-';
+    document.getElementById('profileClassField').textContent = studentClass() || '-';
+
+    const totalXP = allSubmissions.reduce((sum, sub) => sum + (sub.xpEarned || 0), 0);
+    const completed = allSubmissions.length;
+    const avg = completed ? Math.round(allSubmissions.reduce((s, x) => s + (x.percentage || 0), 0) / completed) : 0;
+    const best = bestSubjectByXP();
+
+    document.getElementById('profileTotalXP').textContent = totalXP;
+    document.getElementById('profileCompleted').textContent = completed;
+    document.getElementById('profileAvg').textContent = avg + '%';
+    document.getElementById('profileBestSubject').textContent = best ? `${best.subject} (${best.xp} XP)` : 'لا توجد بيانات كفاية بعد';
+
+    document.getElementById('passwordForm').reset();
+    setPasswordMsg('', '');
+    document.getElementById('profileModal').classList.remove('hidden');
+}
+function closeProfileModal() { document.getElementById('profileModal').classList.add('hidden'); }
+
+function setPasswordMsg(text, type) {
+    const msg = document.getElementById('passwordMsg');
+    msg.textContent = text;
+    msg.className = 'form-msg' + (type ? ' ' + type : '');
+}
+
+async function changePassword(e) {
+    e.preventDefault();
+    const current = document.getElementById('currentPassword').value;
+    const next = document.getElementById('newPassword').value;
+    const confirmPass = document.getElementById('confirmPassword').value;
+
+    if (next.length < 6) { setPasswordMsg('كلمة السر الجديدة لازم تكون 6 حروف على الأقل', 'error'); return; }
+    if (next !== confirmPass) { setPasswordMsg('تأكيد كلمة السر مش مطابق', 'error'); return; }
+
+    const btn = document.getElementById('changePasswordBtn');
+    btn.disabled = true;
+    try {
+        const cred = EmailAuthProvider.credential(currentUser.email, current);
+        await reauthenticateWithCredential(currentUser, cred);
+        await updatePassword(currentUser, next);
+        setPasswordMsg('تم تغيير كلمة السر بنجاح ✅', 'success');
+        document.getElementById('passwordForm').reset();
+    } catch (err) {
+        console.error(err);
+        const map = { 'auth/wrong-password': 'كلمة السر الحالية غلط', 'auth/too-many-requests': 'محاولات كتير، حاول تاني بعد شوية', 'auth/weak-password': 'كلمة السر ضعيفة، اختار كلمة أقوى' };
+        setPasswordMsg(map[err.code] || 'حدث خطأ: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+// =========================================
+// 9.6 Render Leaderboard Modal (فصل / مدرسة)
+// =========================================
+function renderLeaderboardModal() {
     const container = document.getElementById('leaderboardContainer');
     if (!container) return;
 
-    if (allLeaderboard.length === 0) {
+    const board = leaderboardScope === 'school' ? schoolBoard : classBoard;
+    document.querySelectorAll('.leaderboard-tab').forEach(t => t.classList.toggle('active', t.dataset.scope === leaderboardScope));
+
+    if (board.length === 0) {
         container.innerHTML = '<div class="loading-item">لا يوجد طلاب في الترتيب بعد</div>';
         return;
     }
@@ -205,19 +283,27 @@ function renderLeaderboard() {
     const rankClass = (i) => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
     const rankIcon = (i) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
 
-    container.innerHTML = allLeaderboard.map((s, i) => {
+    container.innerHTML = board.map((s, i) => {
         const isMe = s.studentId === currentUser.uid;
         return `
             <div class="leaderboard-row ${isMe ? 'me' : ''}">
                 <div class="leaderboard-rank ${rankClass(i)}">${rankIcon(i)}</div>
                 <div class="leaderboard-info">
-                    <div class="leaderboard-name">${s.studentName}${isMe ? ' (أنت)' : ''}</div>
-                    <div class="leaderboard-meta">${s.completedQuizzes} كويز محلول - متوسط ${s.avgScore}%</div>
+                    <div class="leaderboard-name">${escStudent(s.studentName)}${isMe ? ' (أنت)' : ''}</div>
+                    <div class="leaderboard-meta">${s.completedQuizzes||0} كويز محلول - متوسط ${Math.round(s.avgScore||0)}%${leaderboardScope==='school' ? ` - فصل ${escStudent(s.class||'-')}` : ''}</div>
                 </div>
-                <div class="leaderboard-xp">${s.totalXP} XP</div>
+                <div class="leaderboard-xp">${s.totalXP||0} XP</div>
             </div>
         `;
     }).join('');
+}
+
+function openLeaderboardModal() {
+    document.getElementById('leaderboardModal').classList.remove('hidden');
+    renderLeaderboardModal();
+}
+function closeLeaderboardModal() {
+    document.getElementById('leaderboardModal').classList.add('hidden');
 }
 
 // =========================================
@@ -698,7 +784,12 @@ function setupEventListeners() {
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const targetSection = item.dataset.section;
-            
+
+            if (targetSection === 'leaderboard') {
+                openLeaderboardModal();
+                return;
+            }
+
             navItems.forEach(nav => nav.classList.remove('active'));
             contentSections.forEach(section => section.classList.remove('active'));
             
@@ -706,6 +797,26 @@ function setupEventListeners() {
             document.getElementById(targetSection).classList.add('active');
         });
     });
+
+    // Leaderboard Modal
+    document.getElementById('closeLeaderboardModal').addEventListener('click', closeLeaderboardModal);
+    document.getElementById('leaderboardModal').addEventListener('click', e => {
+        if (e.target.id === 'leaderboardModal') closeLeaderboardModal();
+    });
+    document.querySelectorAll('.leaderboard-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            leaderboardScope = tab.dataset.scope;
+            renderLeaderboardModal();
+        });
+    });
+
+    // Profile Modal
+    document.getElementById('profileTrigger').addEventListener('click', openProfileModal);
+    document.getElementById('closeProfileModal').addEventListener('click', closeProfileModal);
+    document.getElementById('profileModal').addEventListener('click', e => {
+        if (e.target.id === 'profileModal') closeProfileModal();
+    });
+    document.getElementById('passwordForm').addEventListener('submit', changePassword);
     
     // Theme Toggle
     const themeToggle = document.getElementById('theme-toggle');

@@ -21,7 +21,7 @@
                 </div>
             </div>
             <div class="user-area">
-                <div class="teacher-info">
+                <div class="teacher-info" id="profileTrigger" role="button" tabindex="0" title="الملف الشخصي">
                     <span class="teacher-name" id="teacherName">جاري التحميل...</span>
                     <span class="teacher-subject" id="teacherSubject">-</span><span class="teacher-classes-mini" id="assignedClassesText">-</span>
                 </div>
@@ -456,6 +456,41 @@
                     <button type="submit" class="btn-save">إرسال</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="profileModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👤 الملف الشخصي</h3>
+                <button class="modal-close" id="closeProfileModal">&times;</button>
+            </div>
+            <div class="modal-form">
+                <div class="assigned-scope"><span>الاسم:</span><strong id="profileNameField">-</strong></div>
+                <div class="assigned-scope"><span>البريد الإلكتروني:</span><strong id="profileEmailField">-</strong></div>
+                <div class="assigned-scope"><span>المادة:</span><strong id="profileSubjectField">-</strong></div>
+
+                <hr>
+                <h4>تغيير كلمة السر</h4>
+                <form id="passwordForm" class="modal-form" style="padding:0">
+                    <div class="form-group">
+                        <label>كلمة السر الحالية</label>
+                        <input type="password" id="currentPassword" required autocomplete="current-password">
+                    </div>
+                    <div class="form-group">
+                        <label>كلمة السر الجديدة</label>
+                        <input type="password" id="newPassword" required minlength="6" autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label>تأكيد كلمة السر الجديدة</label>
+                        <input type="password" id="confirmPassword" required minlength="6" autocomplete="new-password">
+                    </div>
+                    <div id="passwordMsg" class="form-msg"></div>
+                    <div class="form-actions">
+                        <button type="submit" id="changePasswordBtn" class="btn-save">حفظ كلمة السر الجديدة</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

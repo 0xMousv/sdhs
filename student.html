@@ -39,7 +39,7 @@
                     <span class="xp-value" id="totalXP">0</span>
                     <span class="xp-label">XP</span>
                 </div>
-                <div class="student-info">
+                <div class="student-info" id="profileTrigger" role="button" tabindex="0" title="الملف الشخصي">
                     <span class="student-name" id="studentName">جاري التحميل...</span>
                     <span class="student-class" id="studentClass">-</span>
                 </div>
@@ -196,17 +196,69 @@
                 </div>
             </section>
 
-            <!-- قسم لوحة الصدارة -->
-            <section id="leaderboard" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">🏆 لوحة الصدارة</h2>
-                    <p class="section-subtitle">ترتيب الطلاب حسب نقاط الـ XP. أول واحد يحل الكويز ياخد الدرجة الكاملة، وبعد كل حل تقل المكافأة 2% لحد نص الدرجة</p>
-                </div>
-                <div id="leaderboardContainer">
-                    <div class="loading-item">جاري تحميل الترتيب...</div>
-                </div>
-            </section>
+            <!-- قسم لوحة الصدارة بقى نافذة (Dialog) بدل قسم منفصل، افتحها من القائمة الجانبية -->
         </main>
+    </div>
+
+    <!-- نافذة لوحة الصدارة -->
+    <div id="leaderboardModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>🏆 لوحة الصدارة</h3>
+                <button class="modal-close" id="closeLeaderboardModal">&times;</button>
+            </div>
+            <div class="leaderboard-tabs">
+                <button class="leaderboard-tab active" data-scope="class">👥 فصلي</button>
+                <button class="leaderboard-tab" data-scope="school">🏫 المدرسة كلها</button>
+            </div>
+            <p class="section-subtitle" style="padding:0 24px">ترتيب الطلاب حسب نقاط الـ XP. أول واحد يحل الكويز ياخد الدرجة الكاملة، وبعد كل حل تقل المكافأة 2% لحد نص الدرجة.</p>
+            <div id="leaderboardContainer" class="modal-form">
+                <div class="loading-item">جاري تحميل الترتيب...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة الملف الشخصي -->
+    <div id="profileModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👤 الملف الشخصي</h3>
+                <button class="modal-close" id="closeProfileModal">&times;</button>
+            </div>
+            <div class="modal-form">
+                <div class="profile-info-grid">
+                    <div><span>الاسم</span><b id="profileNameField">-</b></div>
+                    <div><span>البريد الإلكتروني</span><b id="profileEmailField">-</b></div>
+                    <div><span>الفصل</span><b id="profileClassField">-</b></div>
+                </div>
+
+                <div class="profile-stats-grid">
+                    <div class="profile-stat"><span>إجمالي XP</span><b id="profileTotalXP">0</b></div>
+                    <div class="profile-stat"><span>كويزات محلولة</span><b id="profileCompleted">0</b></div>
+                    <div class="profile-stat"><span>متوسط الدرجات</span><b id="profileAvg">0%</b></div>
+                    <div class="profile-stat wide"><span>أحسن مادة</span><b id="profileBestSubject">-</b></div>
+                </div>
+
+                <hr class="modal-divider">
+                <h4>تغيير كلمة السر</h4>
+                <form id="passwordForm" class="modal-form" style="padding:0">
+                    <div class="form-group">
+                        <label>كلمة السر الحالية</label>
+                        <input type="password" id="currentPassword" required autocomplete="current-password">
+                    </div>
+                    <div class="form-group">
+                        <label>كلمة السر الجديدة</label>
+                        <input type="password" id="newPassword" required minlength="6" autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label>تأكيد كلمة السر الجديدة</label>
+                        <input type="password" id="confirmPassword" required minlength="6" autocomplete="new-password">
+                    </div>
+                    <div id="passwordMsg" class="form-msg"></div>
+                    <button type="submit" id="changePasswordBtn" class="btn-primary">حفظ كلمة السر الجديدة</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDK -->

@@ -466,8 +466,9 @@ async function submitQuiz() {
         const percentage = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
 
         // حساب الـ XP الأساسي على حسب النسبة المئوية
+        // (النجاح من 50% فأكتر، وكل سؤال غلط بينقص من الـ XP بنسبته من إجمالي الأسئلة)
         let baseXpEarned = 0;
-        if (percentage >= 60) {
+        if (percentage >= 50) {
             baseXpEarned = Math.round((currentQuiz.xpReward || 0) * (percentage / 100));
         }
 
@@ -480,7 +481,7 @@ async function submitQuiz() {
         let solveRank = null;
         let decayMultiplier = null;
         let xpEarned = 0;
-        const didSolve = baseXpEarned > 0; // نجح في الكويز (٦٠٪ فأكتر) = "حله"
+        const didSolve = baseXpEarned > 0; // نجح في الكويز (٥٠٪ فأكتر) = "حله"
 
         await runTransaction(db, async (transaction) => {
             const quizSnap = await transaction.get(quizRef);
@@ -501,6 +502,7 @@ async function submitQuiz() {
                 studentId: currentUser.uid,
                 studentName: currentUserData.name,
                 studentEmail: currentUserData.email,
+                subject: currentQuiz.subject || '',
                 answers: userAnswers,
                 score: totalScore,
                 totalQuestions: questions.length,

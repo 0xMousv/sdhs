@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -74,6 +74,10 @@ function renderAnnouncements(){ const el=document.getElementById('announcementsL
 function setupEvents(){
  document.querySelectorAll('.nav-item').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.content-section').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.getElementById(btn.dataset.section)?.classList.add('active');}));
  document.getElementById('logoutBtn')?.addEventListener('click',()=>signOut(auth).then(()=>location.href='login.html'));
+ document.getElementById('profileTrigger')?.addEventListener('click',openProfileModal);
+ document.getElementById('closeProfileModal')?.addEventListener('click',()=>document.getElementById('profileModal').classList.add('hidden'));
+ document.getElementById('profileModal')?.addEventListener('click',e=>{if(e.target.id==='profileModal')document.getElementById('profileModal').classList.add('hidden');});
+ document.getElementById('passwordForm')?.addEventListener('submit',changePassword);
  document.getElementById('addMaterialBtn')?.addEventListener('click',openMaterialModal);
  document.getElementById('addQuizBtn')?.addEventListener('click',openQuizModal);
  document.getElementById('addAnnouncementBtn')?.addEventListener('click',openAnnouncementModal);
@@ -104,6 +108,26 @@ async function saveMaterial(e){e.preventDefault();const f=document.getElementByI
 async function saveQuiz(e){e.preventDefault();try{const questions=collectQuestions(),date=document.getElementById('deadlineDate').value,start=document.getElementById('startTime').value,end=document.getElementById('endTime').value;if(!date||!start||!end||start>=end)throw new Error('حدد وقت بداية ونهاية صحيحين');const data={title:document.getElementById('quizTitle').value.trim(),subject:currentUserData.subject||'',xpReward:Number(document.getElementById('quizXP').value)||50,durationMinutes:Number(document.getElementById('quizDuration').value)||10,isOptional:document.getElementById('quizOptional').checked,questions,questionsCount:questions.length,teacherId:currentUser.uid,teacherName:currentUserData.name||'',targetClasses:teacherClasses(),targetClass:teacherClasses()[0]||'',startAt:new Date(`${date}T${start}`).toISOString(),deadline:new Date(`${date}T${end}`).toISOString(),updatedAt:new Date().toISOString()};if(!data.title)throw new Error('اكتب عنوان الكويز');if(!data.targetClasses.length)throw new Error('المدرس غير مسند لفصل');if(document.getElementById('quizForm').dataset.id)await updateDoc(doc(db,'quizzes',document.getElementById('quizForm').dataset.id),data);else{data.createdAt=new Date().toISOString();await addDoc(collection(db,'quizzes'),data);}alert('تم حفظ الكويز بنجاح');document.getElementById('quizModal').classList.add('hidden');await loadQuizzes();updateDashboard();renderQuizzes();}catch(err){console.error(err);alert(err.message);}}
 async function saveAnnouncement(e){e.preventDefault();const title=document.getElementById('announcementTitle').value.trim(),content=document.getElementById('announcementContent').value.trim();if(!title||!content){alert('العنوان والمحتوى إجباريان');return;}const classes=teacherClasses();if(!classes.length){alert('لا يوجد فصول مسندة');return;}try{await addDoc(collection(db,'announcements'),{title,content,teacherId:currentUser.uid,teacherName:currentUserData.name||'',subject:currentUserData.subject||'',targetClasses:classes,targetClass:classes[0],createdAt:new Date().toISOString(),readBy:[]});alert('تم إرسال الإشعار إلى الفصول المسندة إليك');document.getElementById('announcementModal').classList.add('hidden');await loadAnnouncements();renderAnnouncements();}catch(err){alert('حدث خطأ: '+err.message);}}
 
+function openProfileModal(){document.getElementById('profileNameField').textContent=currentUserData.name||'-';document.getElementById('profileEmailField').textContent=currentUserData.email||currentUser.email||'-';document.getElementById('profileSubjectField').textContent=currentUserData.subject||'-';document.getElementById('passwordForm').reset();setPasswordMsg('','');document.getElementById('profileModal').classList.remove('hidden');}
+function setPasswordMsg(text,type){const msg=document.getElementById('passwordMsg');msg.textContent=text;msg.className='form-msg'+(type?' '+type:'');}
+async function changePassword(e){
+  e.preventDefault();
+  const current=document.getElementById('currentPassword').value,next=document.getElementById('newPassword').value,confirmPass=document.getElementById('confirmPassword').value;
+  if(next.length<6){setPasswordMsg('كلمة السر الجديدة لازم تكون 6 حروف على الأقل','error');return;}
+  if(next!==confirmPass){setPasswordMsg('تأكيد كلمة السر مش مطابق','error');return;}
+  const btn=document.getElementById('changePasswordBtn');btn.disabled=true;
+  try{
+    const cred=EmailAuthProvider.credential(currentUser.email,current);
+    await reauthenticateWithCredential(currentUser,cred);
+    await updatePassword(currentUser,next);
+    setPasswordMsg('تم تغيير كلمة السر بنجاح ✅','success');
+    document.getElementById('passwordForm').reset();
+  }catch(err){
+    console.error(err);
+    const map={'auth/wrong-password':'كلمة السر الحالية غلط','auth/too-many-requests':'محاولات كتير، حاول تاني بعد شوية','auth/weak-password':'كلمة السر ضعيفة، اختار كلمة أقوى'};
+    setPasswordMsg(map[err.code]||'حدث خطأ: '+err.message,'error');
+  }finally{btn.disabled=false;}
+}
 window.editMaterial=async id=>{const m=allMaterials.find(x=>x.id===id);if(!m)return;openMaterialModal();const f=document.getElementById('materialForm');f.dataset.id=id;document.getElementById('materialTitle').value=m.title||'';document.getElementById('materialDescription').value=m.description||'';document.getElementById('materialSubject').value=m.subject||currentUserData.subject||'';document.getElementById('materialType').value=m.type==='video'?'video':m.type==='text'?'text':(m.fileUrl?'file':'');document.getElementById('materialUrl').value=m.youtubeUrl||m.url||'';document.getElementById('materialContent').value=m.content||'';syncMaterialExtras();};
 window.deleteMaterial=async id=>{if(!confirm('حذف هذا الدرس؟'))return;await deleteDoc(doc(db,'materials',id));await loadMaterials();await loadViews();updateDashboard();renderMaterials();};
 window.showMaterialViewers=async id=>{const rows=allViews.filter(x=>x.materialId===id).sort((a,b)=>new Date(b.lastSeenAt||b.openedAt||0)-new Date(a.lastSeenAt||a.openedAt||0));alert(rows.length?rows.map(x=>`${x.studentName||'طالب'} — ${x.openedAt?new Date(x.openedAt).toLocaleString('ar-EG'):''}`).join('\n'):'لم يشاهد أي طالب الدرس بعد');};
