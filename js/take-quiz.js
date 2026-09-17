@@ -499,6 +499,7 @@ async function submitQuiz() {
 
             const submissionData = {
                 quizId: currentQuiz.id,
+                teacherId: currentQuiz.teacherId || '',
                 studentId: currentUser.uid,
                 studentName: currentUserData.name,
                 studentEmail: currentUserData.email,

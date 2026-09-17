@@ -24,6 +24,8 @@ import {
     where,
     setDoc,
     orderBy,
+    limit,
+    getCountFromServer,
     Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -159,7 +161,7 @@ async function loadAllData() {
         renderAnnouncements();
         renderGrades();
         renderClassLeaderboard();
-        renderSchoolStats();
+        await renderSchoolStats();
         
     } catch (error) {
         console.error('Error loading data:', error);
@@ -171,13 +173,27 @@ async function loadAllData() {
 // =========================================
 async function loadLeaderboard() {
     try {
-        const statsSnapshot = await getDocs(collection(db, 'studentStats'));
-        allStudentStats = statsSnapshot.docs.map(d => ({ id:d.id, ...d.data() }));
-        classBoard = allStudentStats
-            .filter(s => s.class === studentClass())
-            .sort((a,b) => (b.totalXP||0) - (a.totalXP||0));
-        schoolBoard = [...allStudentStats].sort((a,b) => (b.totalXP||0) - (a.totalXP||0));
-        allLeaderboard = classBoard; // متوافق مع الأماكن القديمة اللي لسه بتستخدمها (مثل المني ودجت)
+        const LB_LIMIT = 50;
+        const [classSnap, schoolSnap] = await Promise.all([
+            getDocs(query(collection(db, 'studentStats'), where('class', '==', studentClass()), orderBy('totalXP', 'desc'), limit(LB_LIMIT))),
+            getDocs(query(collection(db, 'studentStats'), orderBy('totalXP', 'desc'), limit(LB_LIMIT)))
+        ]);
+        classBoard = classSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        schoolBoard = schoolSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        allStudentStats = schoolBoard; // متوافق مع renderSchoolStats (تقريبي على أعلى 50 بدل قراءة الكل)
+        allLeaderboard = classBoard;
+
+        // لو الطالب مش موجود ضمن أعلى 50 في أي من القايمتين، هات درجته هو بس (قراءة واحدة رخيصة)
+        const inClass = classBoard.some(s => s.studentId === currentUser.uid);
+        const inSchool = schoolBoard.some(s => s.studentId === currentUser.uid);
+        if (!inClass || !inSchool) {
+            const mySnap = await getDoc(doc(db, 'studentStats', currentUser.uid));
+            if (mySnap.exists()) {
+                const mine = { id: mySnap.id, ...mySnap.data() };
+                if (!inClass) classBoard = [...classBoard, mine];
+                if (!inSchool) schoolBoard = [...schoolBoard, mine];
+            }
+        }
     } catch (error) { console.error('Error loading leaderboard:', error); }
 }
 
@@ -188,12 +204,20 @@ function renderClassLeaderboard() {
     if(!allLeaderboard.length){el.innerHTML='<div class="loading-item">لا توجد نتائج كافية بعد</div>';return;}
     el.innerHTML=allLeaderboard.slice(0,10).map((s,i)=>`<div class="mini-rank-row ${s.studentId===currentUser.uid?'is-me':''}"><span class="mini-rank">${i+1}</span><div><strong>${escStudent(s.studentName||'طالب')}${s.studentId===currentUser.uid?' (أنت)':''}</strong><small>${s.completedQuizzes||0} كويز • متوسط ${Math.round(s.avgScore||0)}%</small></div><b>${s.totalXP||0} XP</b></div>`).join('');
 }
-function renderSchoolStats(){
+async function renderSchoolStats(){
     const el=document.getElementById('schoolStatsDashboard'); if(!el)return;
-    const totalStudents=new Set(allStudentStats.map(x=>x.studentId||x.id)).size;
-    const classCounts={}; allStudentStats.forEach(x=>{if(x.class)classCounts[x.class]=(classCounts[x.class]||0)+1;});
-    const avg=allStudentStats.length?Math.round(allStudentStats.reduce((t,x)=>t+(x.avgScore||0),0)/allStudentStats.length):0;
-    el.innerHTML=`<div class="school-stat"><span>الطلاب</span><b>${totalStudents}</b></div><div class="school-stat"><span>الفصول</span><b>10</b></div><div class="school-stat"><span>متوسط المدرسة</span><b>${avg}%</b></div><div class="school-stat"><span>طلاب فصلك</span><b>${classCounts[studentClass()]||0}</b></div>`;
+    // بنستخدم count aggregation query هنا (تكلفتها قراءة واحدة بس مهما كان عدد الطلاب)
+    // بدل ما نسحب كل مستندات studentStats عشان نعدّهم
+    try {
+        const [totalSnap, classSnap] = await Promise.all([
+            getCountFromServer(collection(db, 'studentStats')),
+            getCountFromServer(query(collection(db, 'studentStats'), where('class', '==', studentClass())))
+        ]);
+        const totalStudents = totalSnap.data().count;
+        const classCount = classSnap.data().count;
+        const avg = schoolBoard.length ? Math.round(schoolBoard.reduce((t, x) => t + (x.avgScore || 0), 0) / schoolBoard.length) : 0;
+        el.innerHTML=`<div class="school-stat"><span>الطلاب</span><b>${totalStudents}</b></div><div class="school-stat"><span>الفصول</span><b>10</b></div><div class="school-stat"><span>متوسط المدرسة</span><b>${avg}%</b></div><div class="school-stat"><span>طلاب فصلك</span><b>${classCount}</b></div>`;
+    } catch (e) { console.error(e); }
 }
 function escStudent(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 
