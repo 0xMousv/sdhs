@@ -62,6 +62,10 @@ body{margin:0;font-family:'Tajawal',Arial,sans-serif;background:var(--bg-primary
 .image-wrap img{width:100%;max-height:560px;object-fit:contain;background:var(--bg-tertiary);display:block}
 .image-wrap .file-link{margin-top:14px}
 
+.pdf-wrap{margin:22px 32px 0}
+.pdf-wrap iframe{width:100%;height:70vh;min-height:420px;border:1px solid var(--border-color);border-radius:var(--radius);box-shadow:var(--shadow-md);background:var(--bg-tertiary);display:block}
+.pdf-wrap .file-link{margin-top:14px;display:inline-block}
+
 .file-section{margin:22px 32px 0}
 .file-card{display:flex;align-items:center;gap:16px;padding:18px 20px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:var(--radius)}
 .file-icon{width:52px;height:52px;flex-shrink:0;display:grid;place-items:center;font-size:1.6rem;background:var(--bg-secondary);border-radius:14px;box-shadow:var(--shadow-sm)}

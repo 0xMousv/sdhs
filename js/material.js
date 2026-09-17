@@ -80,7 +80,8 @@ function renderLesson(m) {
 
   const vid = youtubeId(m.youtubeUrl || m.url || '');
   const isImage = m.type === 'image' || (m.fileUrl && /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(m.fileUrl));
-  const isFile = m.fileUrl && !isImage;
+  const isPdf = m.type === 'pdf' || (m.fileUrl && /\.pdf(\?|$)/i.test(m.fileUrl));
+  const isFile = m.fileUrl && !isImage && !isPdf;
 
   if (vid) {
     $('video').src = `https://www.youtube.com/embed/${encodeURIComponent(vid)}`;
@@ -94,10 +95,16 @@ function renderLesson(m) {
     $('imageFileLink').href = m.fileUrl;
     $('imageFileLink').download = m.fileName || '';
     $('imageSection').classList.remove('hidden');
+  } else if (isPdf && m.fileUrl) {
+    $('pdfFrame').src = m.fileUrl;
+    $('pdfDownload').href = m.fileUrl;
+    $('pdfDownload').download = m.fileName || '';
+    $('pdfSection').classList.remove('hidden');
   } else if (isFile) {
     $('fileLink').href = m.fileUrl;
-    $('fileName').textContent = m.fileName || 'فتح الملف';
-    $('fileIcon').textContent = m.type === 'pdf' ? '📕' : '📎';
+    $('fileLink').download = m.fileName || '';
+    $('fileName').textContent = m.fileName || 'الملف المرفق';
+    $('fileIcon').textContent = '📎';
     $('fileSection').classList.remove('hidden');
   }
 
@@ -106,9 +113,9 @@ function renderLesson(m) {
     $('textSection').classList.remove('hidden');
   }
 
-  $('typeBadge').textContent = isImage ? 'صورة' : m.type === 'pdf' ? 'ملف PDF' : vid ? 'YouTube' : isFile ? 'ملف مرفق' : 'شرح الدرس';
+  $('typeBadge').textContent = isImage ? 'صورة' : isPdf ? 'ملف PDF' : vid ? 'YouTube' : isFile ? 'ملف مرفق' : 'شرح الدرس';
 
-  if (!vid && !isImage && !isFile && !m.content) {
+  if (!vid && !isImage && !isPdf && !isFile && !m.content) {
     $('emptyContent').classList.remove('hidden');
   }
 }
