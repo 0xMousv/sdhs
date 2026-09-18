@@ -93,7 +93,7 @@ function setupEvents(){
  document.getElementById('addQuestionBtn')?.addEventListener('click',addQuestion);
 }
 function openMaterialModal(){const f=document.getElementById('materialForm');f.reset();delete f.dataset.id;document.getElementById('materialSubject').value=currentUserData.subject||'';document.getElementById('assignedClassesPreview').textContent=classesText(teacherClasses());syncMaterialExtras();document.getElementById('materialModal').classList.remove('hidden');}
-function openQuizModal(){const f=document.getElementById('quizForm');f.reset();delete f.dataset.id;document.getElementById('quizSubject').value=currentUserData.subject||'';document.getElementById('assignedQuizClasses').textContent=classesText(teacherClasses());document.getElementById('questionsContainer').innerHTML='';questionCounter=0;addQuestion();setDefaultQuizTimes();document.getElementById('quizModal').classList.remove('hidden');}
+function openQuizModal(){const f=document.getElementById('quizForm');f.reset();delete f.dataset.id;document.getElementById('quizModalTitle').textContent='إنشاء كويز جديد';document.getElementById('quizSubject').value=currentUserData.subject||'';document.getElementById('assignedQuizClasses').textContent=classesText(teacherClasses());document.getElementById('questionsContainer').innerHTML='';questionCounter=0;addQuestion();setDefaultQuizTimes();document.getElementById('quizModal').classList.remove('hidden');}
 function openAnnouncementModal(){const f=document.getElementById('announcementForm');f.reset();delete f.dataset.id;document.getElementById('announcementClassesPreview').textContent=classesText(teacherClasses());document.getElementById('announcementModal').classList.remove('hidden');}
 function syncMaterialExtras(){const type=document.getElementById('materialType')?.value;document.getElementById('youtubeGroup')?.classList.toggle('hidden',type!=='video');document.getElementById('fileGroup')?.classList.toggle('hidden',type!=='file');document.getElementById('textGroup')?.classList.toggle('hidden',type!=='text');}
 function setDefaultQuizTimes(){const now=new Date();const d=now.toISOString().slice(0,10);document.getElementById('deadlineDate').value=d;document.getElementById('startTime').value=now.toTimeString().slice(0,5);document.getElementById('endTime').value=new Date(now.getTime()+60*60*1000).toTimeString().slice(0,5);previewDeadline();}
@@ -132,5 +132,42 @@ window.editMaterial=async id=>{const m=allMaterials.find(x=>x.id===id);if(!m)ret
 window.deleteMaterial=async id=>{if(!confirm('حذف هذا الدرس؟'))return;await deleteDoc(doc(db,'materials',id));await loadMaterials();await loadViews();updateDashboard();renderMaterials();};
 window.showMaterialViewers=async id=>{const rows=allViews.filter(x=>x.materialId===id).sort((a,b)=>new Date(b.lastSeenAt||b.openedAt||0)-new Date(a.lastSeenAt||a.openedAt||0));alert(rows.length?rows.map(x=>`${x.studentName||'طالب'} — ${x.openedAt?new Date(x.openedAt).toLocaleString('ar-EG'):''}`).join('\n'):'لم يشاهد أي طالب الدرس بعد');};
 window.toggleStudentRedFlag=async id=>{const s=allStudents.find(x=>x.id===id);if(!s)return;await updateDoc(doc(db,'users',id),{redFlag:!s.redFlag,updatedAt:new Date().toISOString(),redFlagBy:currentUser.uid,redFlagTeacherName:currentUserData.name||''});await loadStudents();renderStudents();};
-window.editQuiz=async id=>{alert('تعديل الكويز يمكن فتحه من هنا في النسخة الحالية، وسيتم الحفاظ على الفصول المسندة للمدرس تلقائيًا.');};
+window.editQuiz=async id=>{
+  const q=allQuizzes.find(x=>x.id===id);
+  if(!q)return;
+  openQuizModal();
+  const f=document.getElementById('quizForm');
+  f.dataset.id=id;
+  document.getElementById('quizModalTitle').textContent='تعديل الكويز';
+  document.getElementById('quizTitle').value=q.title||'';
+  document.getElementById('quizSubject').value=q.subject||currentUserData.subject||'';
+  document.getElementById('quizXP').value=q.xpReward||50;
+  document.getElementById('quizDuration').value=q.durationMinutes||10;
+  document.getElementById('quizOptional').checked=!!q.isOptional;
+  if(q.startAt){
+    const s=new Date(q.startAt);
+    document.getElementById('deadlineDate').value=s.toISOString().slice(0,10);
+    document.getElementById('startTime').value=s.toTimeString().slice(0,5);
+  }
+  if(q.deadline) document.getElementById('endTime').value=new Date(q.deadline).toTimeString().slice(0,5);
+  previewDeadline();
+
+  document.getElementById('questionsContainer').innerHTML='';
+  questionCounter=0;
+  const qs=q.questions||[];
+  qs.forEach(qq=>{
+    addQuestion();
+    const card=document.querySelector('#questionsContainer .question-card:last-child');
+    card.querySelector('.question-text').value=qq.questionText||'';
+    const opts=[...card.querySelectorAll('.option-item')];
+    (qq.options||[]).forEach((op,i)=>{
+      if(!opts[i])return;
+      opts[i].querySelector('.option-text').value=op.text||'';
+      opts[i].querySelector('.option-explanation').value=op.explanation||'';
+      opts[i].querySelector('.option-radio').checked = op.isCorrect===true || i===qq.correctAnswerIndex;
+    });
+    card.querySelector('.correct-explanation').value=qq.correctExplanation||'';
+  });
+  if(!qs.length) addQuestion();
+};
 window.deleteQuiz=async id=>{if(!confirm('حذف الكويز؟'))return;await deleteDoc(doc(db,'quizzes',id));await loadQuizzes();updateDashboard();renderQuizzes();};
