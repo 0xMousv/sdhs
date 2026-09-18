@@ -172,18 +172,28 @@ async function loadAllData() {
 // 9.5 Load Leaderboard + School Stats
 // =========================================
 async function loadLeaderboard() {
-    try {
-        const LB_LIMIT = 50;
-        const [classSnap, schoolSnap] = await Promise.all([
-            getDocs(query(collection(db, 'studentStats'), where('class', '==', studentClass()), orderBy('totalXP', 'desc'), limit(LB_LIMIT))),
-            getDocs(query(collection(db, 'studentStats'), orderBy('totalXP', 'desc'), limit(LB_LIMIT)))
-        ]);
-        classBoard = classSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        schoolBoard = schoolSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        allStudentStats = schoolBoard; // متوافق مع renderSchoolStats (تقريبي على أعلى 50 بدل قراءة الكل)
-        allLeaderboard = classBoard;
+    const LB_LIMIT = 50;
 
-        // لو الطالب مش موجود ضمن أعلى 50 في أي من القايمتين، هات درجته هو بس (قراءة واحدة رخيصة)
+    // بورد المدرسة: ترتيب على حقل واحد (totalXP) بس، ده مفهرس تلقائيًا في Firestore
+    // ومحتاجش composite index خالص.
+    try {
+        const schoolSnap = await getDocs(query(collection(db, 'studentStats'), orderBy('totalXP', 'desc'), limit(LB_LIMIT)));
+        schoolBoard = schoolSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) { console.error('Error loading school leaderboard:', error); schoolBoard = []; }
+
+    // بورد الفصل: هنا فلترة (class==) + ترتيب على حقل تاني كان هيحتاج composite index
+    // في Firebase Console. عشان منعتمدش على خطوة يدوية زي دي، بنجيب طلاب الفصل بس
+    // (بدون orderBy في الاستعلام نفسه) وبنرتّبهم على الجهاز — حجم الفصل صغير أصلاً فده رخيص.
+    try {
+        const classSnap = await getDocs(query(collection(db, 'studentStats'), where('class', '==', studentClass()), limit(300)));
+        classBoard = classSnap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.totalXP || 0) - (a.totalXP || 0)).slice(0, LB_LIMIT);
+    } catch (error) { console.error('Error loading class leaderboard:', error); classBoard = []; }
+
+    allStudentStats = schoolBoard; // متوافق مع renderSchoolStats (تقريبي على أعلى 50 بدل قراءة الكل)
+    allLeaderboard = classBoard;
+
+    // لو الطالب مش موجود ضمن أعلى 50 في أي من القايمتين، هات درجته هو بس (قراءة واحدة رخيصة)
+    try {
         const inClass = classBoard.some(s => s.studentId === currentUser.uid);
         const inSchool = schoolBoard.some(s => s.studentId === currentUser.uid);
         if (!inClass || !inSchool) {
@@ -194,7 +204,7 @@ async function loadLeaderboard() {
                 if (!inSchool) schoolBoard = [...schoolBoard, mine];
             }
         }
-    } catch (error) { console.error('Error loading leaderboard:', error); }
+    } catch (error) { console.error('Error appending own stats:', error); }
 }
 
 function renderClassLeaderboard() {
