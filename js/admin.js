@@ -103,7 +103,10 @@ async function importStudentsFromCSV(file){
     }
     body.appendChild(tr);
     progressEl.textContent=`جاري الاستيراد... ${done} / ${dataRows.length} (نجح ${ok}، فشل ${fail})`;
-    await sleep(350); // مسافة بسيطة بين كل طلب والتاني لتقليل احتمالية تفعيل حماية إساءة الاستخدام
+    // إيقاع بطيء وغير منتظم (زي حد بيدوس يدوي)، مش فاصل زمني ثابت زي سكريبت آلي
+    const jitter = 900 + Math.random() * 900; // بين 0.9 و1.8 ثانية
+    await sleep(jitter);
+    if (done % 20 === 0) { progressEl.textContent += ' — استراحة قصيرة...'; await sleep(4000); }
   }
   try{ await deleteApp(secondaryApp); }catch(e){}
   progressEl.textContent=`اكتمل الاستيراد: نجح ${ok} من ${dataRows.length}، فشل ${fail}`;
