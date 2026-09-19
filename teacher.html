@@ -44,6 +44,11 @@
                     <span class="nav-text">الشروحات</span>
                     <span class="nav-badge" id="materialsCount">0</span>
                 </button>
+                <button class="nav-item" data-section="homework">
+                    <span class="nav-icon">📔</span>
+                    <span class="nav-text">الواجبات المنزلية</span>
+                    <span class="nav-badge" id="homeworkCount">0</span>
+                </button>
                 <button class="nav-item" data-section="quizzes">
                     <span class="nav-icon">📝</span>
                     <span class="nav-text">الكويزات</span>
@@ -134,6 +139,20 @@
                 </div>
                 <div class="materials-grid" id="materialsGrid">
                     <div class="loading-card">جاري تحميل الشروحات...</div>
+                </div>
+            </section>
+
+            <!-- الواجبات المنزلية -->
+            <section id="homework" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">📔 الواجبات المنزلية</h2>
+                        <p class="section-subtitle">كل واجب تنشره يصل تلقائيًا إلى كل الفصول المسندة لك من الإدارة</p>
+                    </div>
+                    <button class="btn-add" id="addHomeworkBtn">+ إضافة واجب جديد</button>
+                </div>
+                <div class="materials-grid" id="homeworkGrid">
+                    <div class="loading-card">جاري تحميل الواجبات...</div>
                 </div>
             </section>
 
@@ -252,6 +271,60 @@
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" id="cancelMaterial">إلغاء</button>
                     <button type="submit" class="btn-save">نشر الشرح</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal الواجب المنزلي -->
+    <div id="homeworkModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="homeworkModalTitle">إضافة واجب جديد</h3>
+                <button class="modal-close" id="closeHomeworkModal">&times;</button>
+            </div>
+            <form id="homeworkForm" class="modal-form">
+                <div class="lesson-required-note"><span>إجباري</span><strong>العنوان + وصف الواجب</strong><small>أي إضافات أخرى اختيارية.</small></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>عنوان الواجب *</label>
+                        <input type="text" id="homeworkTitle" placeholder="مثال: واجب الوحدة الأولى" required>
+                    </div>
+                    <div class="form-group">
+                        <label>المادة</label>
+                        <input type="text" id="homeworkSubject" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>وصف الواجب *</label>
+                    <textarea id="homeworkDescription" rows="7" placeholder="اكتب المطلوب من الطلاب بالتفصيل..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>إضافات اختيارية</label>
+                    <select id="homeworkType">
+                        <option value="">بدون إضافة</option>
+                        <option value="text">نص إضافي</option>
+                        <option value="video">رابط YouTube</option>
+                        <option value="file">PDF أو صورة</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="homeworkYoutubeGroup">
+                    <label>رابط YouTube</label>
+                    <input type="url" id="homeworkUrl" placeholder="https://www.youtube.com/watch?v=..." inputmode="url">
+                </div>
+                <div class="form-group hidden" id="homeworkTextGroup">
+                    <label>النص الإضافي</label>
+                    <textarea id="homeworkContent" rows="5" placeholder="أي ملاحظات إضافية..."></textarea>
+                </div>
+                <div class="form-group hidden" id="homeworkFileGroup">
+                    <label>PDF أو صورة</label>
+                    <input type="file" id="homeworkFile" accept="application/pdf,image/*">
+                    <small>اختياري ويُرفع إلى Cloudinary.</small>
+                </div>
+                <div class="assigned-scope"><span>سيصل إلى:</span><strong id="assignedHomeworkClassesPreview">—</strong></div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelHomework">إلغاء</button>
+                    <button type="submit" class="btn-save">نشر الواجب</button>
                 </div>
             </form>
         </div>

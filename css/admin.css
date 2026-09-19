@@ -1100,3 +1100,17 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--border-color,#b
 
 /* ===== Admin final polish ===== */
 .class-chips{display:flex;gap:5px;flex-wrap:wrap}.class-chips span{background:rgba(37,99,235,.08);color:var(--accent-color,#2563eb);padding:4px 8px;border-radius:999px;font-size:.72rem;font-weight:700}.permission-list{display:flex;flex-wrap:wrap;gap:8px}.permission-list span{padding:8px 11px;border-radius:10px;background:rgba(22,163,74,.08);color:var(--success-color,#16a34a);font-size:.8rem;font-weight:700}.principal-info-card{margin-bottom:15px}
+
+.hidden { display: none !important; }
+
+.header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn-secondary {
+    padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border-color);
+    background: var(--bg-tertiary); color: var(--text-primary); font-family: inherit;
+    font-weight: 700; font-size: .9rem; cursor: pointer; transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+
+.import-progress { font-size: .9rem; color: var(--text-secondary); margin-bottom: 12px; min-height: 1.2em; }
+.import-status-ok { color: var(--success-color); font-weight: 700; }
+.import-status-fail { color: var(--error-color); font-weight: 700; }

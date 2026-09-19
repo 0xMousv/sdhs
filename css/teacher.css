@@ -1401,3 +1401,11 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--border-color,#b
 .form-msg.success { color: var(--success-color); }
 #profileTrigger { cursor: pointer; border-radius: 10px; padding: 4px 8px; transition: var(--transition); }
 #profileTrigger:hover { background: var(--bg-tertiary); }
+
+.announcement-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+.btn-delete-announcement {
+    padding: 7px 14px; border: 1px solid var(--error-color); border-radius: 8px;
+    background: transparent; color: var(--error-color); font-family: inherit;
+    font-size: .85rem; font-weight: 700; cursor: pointer; transition: var(--transition);
+}
+.btn-delete-announcement:hover { background: var(--error-color); color: #fff; }

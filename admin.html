@@ -130,7 +130,13 @@
                         <h2 class="section-title">إدارة الطلاب</h2>
                         <p class="section-subtitle">إضافة وتعديل وحذف الطلاب</p>
                     </div>
-                    <button class="btn-add" id="addStudentBtn">+ إضافة طالب</button>
+                    <div class="header-actions">
+                        <button class="btn-secondary" id="exportStudentsBtn">⬇️ تصدير CSV</button>
+                        <button class="btn-secondary" id="downloadTemplateBtn">📄 نموذج الاستيراد</button>
+                        <button class="btn-secondary" id="importStudentsBtn">⬆️ استيراد CSV</button>
+                        <input type="file" id="importStudentsFile" accept=".csv" class="hidden">
+                        <button class="btn-add" id="addStudentBtn">+ إضافة طالب</button>
+                    </div>
                 </div>
 
                 <div class="search-bar">
@@ -341,6 +347,31 @@
                 <div class="form-group"><label>كلمة المرور *</label><input id="principalPassword" type="password" minlength="6" required></div>
                 <div class="form-actions"><button type="button" class="btn-cancel" id="cancelPrincipal">إلغاء</button><button type="submit" class="btn-save">إنشاء الحساب</button></div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal نتائج استيراد الطلاب -->
+    <div id="importResultsModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>نتيجة استيراد الطلاب</h3>
+                <button class="modal-close" id="closeImportResultsModal">&times;</button>
+            </div>
+            <div class="modal-form">
+                <div id="importProgress" class="import-progress"></div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="importResultsBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 

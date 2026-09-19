@@ -20,7 +20,90 @@ function renderTeachers(list){const b=document.getElementById('teachersTableBody
 function renderPrincipals(){const b=document.getElementById('principalsTableBody');b.innerHTML=allPrincipals.length?allPrincipals.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.email)}</td><td><span class="status-badge active">مديرة</span></td><td><button class="btn-delete" onclick="deletePrincipal('${p.id}')">حذف</button></td></tr>`).join(''):'<tr><td colspan="4" class="loading-cell">لم يتم إنشاء حساب مديرة بعد</td></tr>';}
 async function loadQuizzes(){const s=await getDocs(collection(db,'quizzes'));const b=document.getElementById('adminQuizzesGrid');const arr=s.docs.map(d=>({id:d.id,...d.data()}));b.innerHTML=arr.length?arr.map(q=>`<div class="quiz-card"><div class="quiz-header"><h3 class="quiz-title">${esc(q.title)}</h3><span class="quiz-subject">${esc(q.subject)}</span></div><div class="quiz-details"><div>👨‍🏫 ${esc(q.teacherName)}</div><div>👥 ${esc(classesText(q.targetClasses))}</div><div>⏱️ ${q.durationMinutes||10} دقيقة</div><div>📝 ${q.questions?.length||q.questionsCount||0} أسئلة</div></div></div>`).join(''):'<div class="loading-card">لا توجد كويزات</div>';}
 async function loadReports(){const [topSnap,countSnap,qs]=await Promise.all([getDocs(query(collection(db,'studentStats'),orderBy('totalXP','desc'),limit(10))),getCountFromServer(collection(db,'submissions')),getDocs(collection(db,'quizzes'))]);const top=topSnap.docs.map(d=>d.data());document.getElementById('topStudents').innerHTML=top.map((x,i)=>`<div class="leaderboard-row"><div class="leaderboard-rank">${i+1}</div><div class="leaderboard-info"><div class="leaderboard-name">${esc(x.studentName)}</div><div class="leaderboard-meta">${x.completedQuizzes||0} كويز • متوسط ${Math.round(x.avgScore||0)}%</div></div><div class="leaderboard-xp">${x.totalXP||0} XP</div></div>`).join('')||'<div class="loading-item">لا توجد بيانات</div>';document.getElementById('quizStats').innerHTML=`<div class="recent-item"><div class="recent-icon">📝</div><div class="recent-info"><div class="recent-title">إجمالي الكويزات</div><div class="recent-subtitle">${qs.size} كويز</div></div></div><div class="recent-item"><div class="recent-icon">📊</div><div class="recent-info"><div class="recent-title">إجمالي التسليمات</div><div class="recent-subtitle">${countSnap.data().count} تسليم</div></div></div>`;}
-function setupEvents(){document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.content-section').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.section)?.classList.add('active');}));document.getElementById('logoutBtn')?.addEventListener('click',()=>signOut(auth).then(()=>location.href='login.html'));document.getElementById('addStudentBtn')?.addEventListener('click',()=>openModal('student'));document.getElementById('addTeacherBtn')?.addEventListener('click',()=>openModal('teacher'));document.getElementById('addPrincipalBtn')?.addEventListener('click',()=>document.getElementById('principalModal').classList.remove('hidden'));['closeStudentModal','cancelStudent'].forEach(x=>document.getElementById(x)?.addEventListener('click',()=>document.getElementById('studentModal').classList.add('hidden')));['closeTeacherModal','cancelTeacher'].forEach(x=>document.getElementById(x)?.addEventListener('click',()=>document.getElementById('teacherModal').classList.add('hidden')));['closePrincipalModal','cancelPrincipal'].forEach(x=>document.getElementById(x)?.addEventListener('click',()=>document.getElementById('principalModal').classList.add('hidden')));window.addEventListener('click',e=>{['studentModal','teacherModal','principalModal'].forEach(id=>{if(e.target===document.getElementById(id))document.getElementById(id).classList.add('hidden')});});document.getElementById('studentForm').addEventListener('submit',saveStudent);document.getElementById('teacherForm').addEventListener('submit',saveTeacher);document.getElementById('principalForm').addEventListener('submit',savePrincipal);document.getElementById('searchStudents')?.addEventListener('input',e=>{const q=e.target.value.toLowerCase();renderStudents(allStudents.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.email||'').toLowerCase().includes(q)||(x.class||'').includes(q)))});document.getElementById('searchTeachers')?.addEventListener('input',e=>{const q=e.target.value.toLowerCase();renderTeachers(allTeachers.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.email||'').toLowerCase().includes(q)||(x.subject||'').toLowerCase().includes(q)))});}
+function studentsToCSV(){ return [['name','email','class','redFlag'], ...allStudents.map(s=>[s.name||'',s.email||'',s.class||'', s.redFlag?'TRUE':'FALSE'])]; }
+function downloadCSV(filename, rows){
+  const csv=rows.map(r=>r.map(cell=>{const s=String(cell??'');return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(',')).join('\r\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+function parseCSV(text){
+  const rows=[]; let i=0,field='',row=[],inQuotes=false;
+  while(i<text.length){
+    const c=text[i];
+    if(inQuotes){
+      if(c==='"'){ if(text[i+1]==='"'){field+='"';i++;} else inQuotes=false; }
+      else field+=c;
+    } else {
+      if(c==='"') inQuotes=true;
+      else if(c===','){ row.push(field); field=''; }
+      else if(c==='\n' || c==='\r'){ if(c==='\r'&&text[i+1]==='\n')i++; row.push(field); field=''; rows.push(row); row=[]; }
+      else field+=c;
+    }
+    i++;
+  }
+  if(field.length||row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r=>r.some(c=>c!==''));
+}
+function genPassword(){ return 'Std'+Math.random().toString(36).slice(2,8)+Math.floor(Math.random()*90+10); }
+async function importStudentsFromCSV(file){
+  const text=await file.text();
+  const rows=parseCSV(text);
+  if(!rows.length){alert('الملف فاضي');return;}
+  const header=rows[0].map(h=>h.trim().toLowerCase());
+  const dataRows=rows.slice(1);
+  const nameIdx=header.indexOf('name'), emailIdx=header.indexOf('email'), classIdx=header.indexOf('class'), passIdx=header.indexOf('password');
+  if(nameIdx<0||emailIdx<0||classIdx<0){alert('الملف لازم يحتوي أعمدة: name, email, class (وpassword اختياري)');return;}
+
+  const body=document.getElementById('importResultsBody'); body.innerHTML='';
+  document.getElementById('importResultsModal').classList.remove('hidden');
+  const progressEl=document.getElementById('importProgress');
+  let done=0, ok=0, fail=0;
+  progressEl.textContent=`جاري الاستيراد... 0 / ${dataRows.length}`;
+
+  for(const r of dataRows){
+    const name=(r[nameIdx]||'').trim();
+    const email=(r[emailIdx]||'').trim();
+    const cls=(r[classIdx]||'').trim();
+    const password=(passIdx>=0?(r[passIdx]||'').trim():'')||genPassword();
+    done++;
+    const tr=document.createElement('tr');
+    if(!name||!email||!cls){
+      tr.innerHTML=`<td>${esc(name||'-')}</td><td>${esc(email||'-')}</td><td class="import-status-fail">❌ صف ناقص (اسم/إيميل/فصل)</td>`;
+      fail++;
+    } else {
+      let app=null;
+      try{
+        app=initializeApp(firebaseConfig,`Secondary-import-${Date.now()}-${Math.random().toString(36).slice(2,6)}`);
+        const au=getAuth(app);
+        const c=await createUserWithEmailAndPassword(au,email,password);
+        const uid=c.user.uid;
+        await setDoc(doc(db,'users',uid),{name,email,class:cls,redFlag:false,role:'student',uid,createdAt:new Date().toISOString()});
+        await setDoc(doc(db,'studentStats',uid),{studentId:uid,studentName:name,studentClass:cls,class:cls,completedQuizzes:0,totalXP:0,totalPercentage:0,avgScore:0,updatedAt:new Date().toISOString()});
+        await signOut(au); await deleteApp(app);
+        tr.innerHTML=`<td>${esc(name)}</td><td>${esc(email)}</td><td class="import-status-ok">✅ تم — الباسورد: ${esc(password)}</td>`;
+        ok++;
+      }catch(err){
+        if(app){ try{await deleteApp(app);}catch(e){} }
+        const msg=err.code==='auth/email-already-in-use'?'البريد مستخدم بالفعل':(err.code==='auth/invalid-email'?'بريد إلكتروني غير صالح':(err.code==='auth/weak-password'?'كلمة السر ضعيفة (أقل من 6 أحرف)':(err.message||'فشل غير معروف')));
+        tr.innerHTML=`<td>${esc(name)}</td><td>${esc(email)}</td><td class="import-status-fail">❌ ${esc(msg)}</td>`;
+        fail++;
+      }
+    }
+    body.appendChild(tr);
+    progressEl.textContent=`جاري الاستيراد... ${done} / ${dataRows.length} (نجح ${ok}، فشل ${fail})`;
+  }
+  progressEl.textContent=`اكتمل الاستيراد: نجح ${ok} من ${dataRows.length}، فشل ${fail}`;
+  await loadStudents(); await loadDashboard();
+}
+function setupEvents(){document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.content-section').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.section)?.classList.add('active');}));document.getElementById('logoutBtn')?.addEventListener('click',()=>signOut(auth).then(()=>location.href='login.html'));document.getElementById('addStudentBtn')?.addEventListener('click',()=>openModal('student'));document.getElementById('addTeacherBtn')?.addEventListener('click',()=>openModal('teacher'));document.getElementById('addPrincipalBtn')?.addEventListener('click',()=>document.getElementById('principalModal').classList.remove('hidden'));['closeStudentModal','cancelStudent'].forEach(x=>document.getElementById(x)?.addEventListener('click',()=>document.getElementById('studentModal').classList.add('hidden')));['closeTeacherModal','cancelTeacher'].forEach(x=>document.getElementById(x)?.addEventListener('click',()=>document.getElementById('teacherModal').classList.add('hidden')));['closePrincipalModal','cancelPrincipal'].forEach(x=>document.getElementById(x)?.addEventListener('click',()=>document.getElementById('principalModal').classList.add('hidden')));window.addEventListener('click',e=>{['studentModal','teacherModal','principalModal'].forEach(id=>{if(e.target===document.getElementById(id))document.getElementById(id).classList.add('hidden')});});document.getElementById('studentForm').addEventListener('submit',saveStudent);document.getElementById('teacherForm').addEventListener('submit',saveTeacher);document.getElementById('principalForm').addEventListener('submit',savePrincipal);document.getElementById('searchStudents')?.addEventListener('input',e=>{const q=e.target.value.toLowerCase();renderStudents(allStudents.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.email||'').toLowerCase().includes(q)||(x.class||'').includes(q)))});document.getElementById('searchTeachers')?.addEventListener('input',e=>{const q=e.target.value.toLowerCase();renderTeachers(allTeachers.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.email||'').toLowerCase().includes(q)||(x.subject||'').toLowerCase().includes(q)))});
+document.getElementById('exportStudentsBtn')?.addEventListener('click',()=>downloadCSV('students-export.csv',studentsToCSV()));
+document.getElementById('downloadTemplateBtn')?.addEventListener('click',()=>downloadCSV('students-import-template.csv',[['name','email','class','password'],['أحمد محمد علي','ahmed.mohamed@student.com','1/1','']]));
+document.getElementById('importStudentsBtn')?.addEventListener('click',()=>document.getElementById('importStudentsFile').click());
+document.getElementById('importStudentsFile')?.addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;e.target.disabled=true;try{await importStudentsFromCSV(file);}finally{e.target.disabled=false;e.target.value='';}});
+document.getElementById('closeImportResultsModal')?.addEventListener('click',()=>document.getElementById('importResultsModal').classList.add('hidden'));
+}
 function openModal(type){const f=document.getElementById(type==='student'?'studentForm':'teacherForm');f.reset();delete f.dataset.id;f.dataset.mode='add';const emailEl=document.getElementById(type==='student'?'studentEmail':'teacherEmail');if(emailEl)emailEl.disabled=false;const passEl=document.getElementById(type==='student'?'studentPassword':'teacherPassword');if(passEl)passEl.required=true;if(type==='teacher')document.querySelectorAll('#teacherClasses input').forEach(x=>x.checked=false);document.getElementById(type+'Modal').classList.remove('hidden');}
 async function createAuthProfile(email,password,data,label){const a=initializeApp(firebaseConfig,`Secondary-${label}-${Date.now()}`),au=getAuth(a);try{const c=await createUserWithEmailAndPassword(au,email,password);await setDoc(doc(db,'users',c.user.uid),{...data,uid:c.user.uid,createdAt:new Date().toISOString()});await signOut(au);await deleteApp(a);}catch(e){await deleteApp(a);throw e;}}
 async function saveStudent(e){e.preventDefault();const f=e.target,name=document.getElementById('studentName').value.trim(),email=document.getElementById('studentEmail').value.trim(),password=document.getElementById('studentPassword').value,studentClass=document.getElementById('studentClass').value;if(!name||!email||!studentClass||(f.dataset.mode==='add'&&!password)){alert('أكمل البيانات المطلوبة');return;}try{if(f.dataset.mode==='add'){const a=initializeApp(firebaseConfig,`Secondary-student-${Date.now()}`),au=getAuth(a);try{const c=await createUserWithEmailAndPassword(au,email,password);const uid=c.user.uid;await setDoc(doc(db,'users',uid),{name,email,class:studentClass,redFlag:false,role:'student',uid,createdAt:new Date().toISOString()});await setDoc(doc(db,'studentStats',uid),{studentId:uid,studentName:name,studentClass:studentClass,class:studentClass,completedQuizzes:0,totalXP:0,totalPercentage:0,avgScore:0,updatedAt:new Date().toISOString()});await signOut(au);await deleteApp(a);}catch(err){await deleteApp(a);throw err;}}else await updateDoc(doc(db,'users',f.dataset.id),{name,class:studentClass,updatedAt:new Date().toISOString()});alert('تم حفظ الطالب');f.parentElement.parentElement.classList.add('hidden');await loadStudents();await loadDashboard();}catch(e){alert('حدث خطأ: '+(e.code==='auth/email-already-in-use'?'البريد مستخدم بالفعل':e.message));}}

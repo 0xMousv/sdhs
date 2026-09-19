@@ -66,6 +66,10 @@
                     <span class="nav-icon">📚</span>
                     <span class="nav-text">المواد والشروحات</span>
                 </button>
+                <button class="nav-item" data-section="homework">
+                    <span class="nav-icon">📔</span>
+                    <span class="nav-text">الواجبات المنزلية</span>
+                </button>
                 <button class="nav-item" data-section="notifications">
                     <span class="nav-icon"></span>
                     <span class="nav-text">الإشعارات</span>
@@ -171,9 +175,24 @@
                 </div>
             </section>
 
+            <!-- قسم الواجبات المنزلية -->
+            <section id="homework" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">📔 الواجبات المنزلية</h2>
+                    <p class="section-subtitle">واجبات من مدرسيك</p>
+                </div>
+
+                <div class="materials-grid" id="homeworkGrid">
+                    <div class="loading-card">جاري تحميل الواجبات...</div>
+                </div>
+            </section>
+
             <!-- قسم الإشعارات -->
             <section id="notifications" class="content-section">
-                <button id="enableNotificationsBtn" class="btn-add" type="button">تفعيل إشعارات الجهاز</button>
+                <button id="enableNotificationsBtn" class="notif-permission-btn" type="button">
+                    <span class="notif-permission-icon">🔔</span>
+                    <span class="notif-permission-text">فعّل إشعارات الجهاز</span>
+                </button>
                 <div class="section-header">
                     <h2 class="section-title">الإشعارات</h2>
                     <p class="section-subtitle">آخر التحديثات والإعلانات</p>

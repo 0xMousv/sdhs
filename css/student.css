@@ -1071,3 +1071,35 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--border-color,#b
 
 #profileTrigger { cursor: pointer; border-radius: 10px; padding: 4px 8px; transition: var(--transition); }
 #profileTrigger:hover { background: var(--bg-tertiary); }
+
+/* =========================================
+   Notification permission button
+   ========================================= */
+.notif-permission-btn {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; margin-bottom: 18px; padding: 14px 18px;
+    border: none; border-radius: 14px; cursor: pointer;
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+    color: #fff; font-family: inherit; font-size: 1rem; font-weight: 800;
+    box-shadow: var(--shadow-lg); transition: var(--transition);
+}
+.notif-permission-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+.notif-permission-btn:disabled { cursor: default; opacity: .85; transform: none; background: var(--success-color); }
+.notif-permission-icon {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,255,255,.2); font-size: 1.15rem;
+    animation: notifBellRing 2.4s ease-in-out infinite;
+}
+.notif-permission-btn:disabled .notif-permission-icon { animation: none; }
+@keyframes notifBellRing {
+    0%, 92%, 100% { transform: rotate(0deg); }
+    93% { transform: rotate(-14deg); }
+    94% { transform: rotate(11deg); }
+    95% { transform: rotate(-9deg); }
+    96% { transform: rotate(6deg); }
+    97% { transform: rotate(-3deg); }
+    98% { transform: rotate(0deg); }
+}
+.notif-permission-btn.denied { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border-color); }
+.notif-permission-btn.denied .notif-permission-icon { background: transparent; animation: none; }

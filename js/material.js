@@ -14,6 +14,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
 const $ = id => document.getElementById(id);
 const id = new URLSearchParams(location.search).get('id');
+const col = new URLSearchParams(location.search).get('col') === 'homework' ? 'homework' : 'materials';
 const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 
 function youtubeId(url) {
@@ -41,17 +42,17 @@ onAuthStateChanged(auth, async user => {
   if (!id) { fail('معرّف الدرس غير موجود.'); return; }
   try {
     const [mSnap, uSnap] = await Promise.all([
-      getDoc(doc(db, 'materials', id)),
+      getDoc(doc(db, col, id)),
       getDoc(doc(db, 'users', user.uid))
     ]);
-    if (!mSnap.exists()) { fail('الدرس غير موجود أو تم حذفه.'); return; }
+    if (!mSnap.exists()) { fail(col === 'homework' ? 'الواجب غير موجود أو تم حذفه.' : 'الدرس غير موجود أو تم حذفه.'); return; }
     const m = mSnap.data(), u = uSnap.exists() ? uSnap.data() : {};
     const allowed = u.role === 'admin'
       || (u.role === 'teacher' && m.teacherId === user.uid)
       || (u.role === 'student' && ((m.targetClasses || []).includes(u.class) || m.targetClass === u.class));
-    if (!allowed) { fail('هذا الدرس غير متاح لحسابك.'); return; }
+    if (!allowed) { fail(col === 'homework' ? 'هذا الواجب غير متاح لحسابك.' : 'هذا الدرس غير متاح لحسابك.'); return; }
 
-    if (u.role === 'student') {
+    if (u.role === 'student' && col === 'materials') {
       try {
         await setDoc(doc(db, 'materialViews', `${id}_${user.uid}`), {
           materialId: id, studentId: user.uid, studentName: u.name || user.email,
@@ -149,7 +150,7 @@ async function setupChat(user, ud, m) {
     const input = $('chatInput'), text = input.value.trim();
     if (!text) return;
     await addDoc(collection(db, 'lessonMessages'), {
-      materialId: id, senderId: user.uid, senderName: ud.name || user.email,
+      materialId: id, sourceCollection: col, senderId: user.uid, senderName: ud.name || user.email,
       role: ud.role || 'student', text, createdAt: new Date().toISOString()
     });
     input.value = '';

@@ -51,6 +51,7 @@ let currentUserData = null;
 let allQuizzes = [];
 let allSubmissions = [];
 let allMaterials = [];
+let allHomework = [];
 let allAnnouncements = [];
 let allLeaderboard = [];
 let allStudentStats = [];
@@ -108,11 +109,52 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 async function setupNotificationPermission(){
-  if(!('Notification' in window)) return;
   const btn=document.getElementById('enableNotificationsBtn');
-  if(Notification.permission==='granted'){ if(btn) btn.remove(); try{await setDoc(doc(db,'users',currentUser.uid),{notificationsEnabled:true},{merge:true});}catch(e){} return; }
   if(!btn) return;
-  btn.addEventListener('click',async()=>{ const p=await Notification.requestPermission(); if(p==='granted'){ try{await setDoc(doc(db,'users',currentUser.uid),{notificationsEnabled:true},{merge:true});}catch(e){} btn.textContent='تم تفعيل الإشعارات'; btn.disabled=true; } });
+  const textEl=btn.querySelector('.notif-permission-text');
+  const iconEl=btn.querySelector('.notif-permission-icon');
+
+  if(!('Notification' in window)){ btn.remove(); return; }
+
+  const saveFlag=async(val)=>{
+    try{
+      await setDoc(doc(db,'users',currentUser.uid),{notificationsEnabled:val},{merge:true});
+      return true;
+    }catch(e){
+      console.error('Error saving notification flag:', e);
+      return false;
+    }
+  };
+
+  if(Notification.permission==='granted'){
+    if(textEl) textEl.textContent='إشعارات الجهاز مفعّلة';
+    if(iconEl) iconEl.textContent='✅';
+    btn.disabled=true;
+    await saveFlag(true);
+    return;
+  }
+
+  if(Notification.permission==='denied'){
+    btn.classList.add('denied');
+    if(textEl) textEl.textContent='الإشعارات محظورة من إعدادات المتصفح';
+    if(iconEl) iconEl.textContent='🔕';
+    btn.disabled=true;
+    return;
+  }
+
+  btn.addEventListener('click', async () => {
+    btn.disabled=true;
+    const p=await Notification.requestPermission();
+    if(p==='granted'){
+      const saved=await saveFlag(true);
+      if(textEl) textEl.textContent = saved ? 'إشعارات الجهاز مفعّلة' : 'تم التفعيل، بس حصل خطأ في الحفظ';
+      if(iconEl) iconEl.textContent='✅';
+    } else {
+      btn.classList.add('denied');
+      if(textEl) textEl.textContent='الإشعارات محظورة من إعدادات المتصفح';
+      if(iconEl) iconEl.textContent='🔕';
+    }
+  });
 }
 
 // =========================================
@@ -150,6 +192,7 @@ async function loadAllData() {
             loadQuizzes(),
             loadSubmissions(),
             loadMaterials(),
+            loadHomework(),
             loadAnnouncements(),
             loadLeaderboard()
         ]);
@@ -158,6 +201,7 @@ async function loadAllData() {
         updateDashboard();
         renderQuizzes();
         renderMaterials();
+        renderHomework();
         renderAnnouncements();
         renderGrades();
         renderClassLeaderboard();
@@ -391,6 +435,18 @@ async function loadMaterials() {
         });
         console.log('Loaded materials:', allMaterials.length);
     } catch (error) { console.error('Error loading materials:', error); }
+}
+
+async function loadHomework() {
+    try {
+        const snap = await getDocs(query(collection(db, 'homework'), where('targetClasses', 'array-contains', studentClass())));
+        allHomework = [];
+        snap.forEach(docSnap => {
+            const d = { id: docSnap.id, ...docSnap.data() };
+            if (targetsMe(d)) allHomework.push(d);
+        });
+        console.log('Loaded homework:', allHomework.length);
+    } catch (error) { console.error('Error loading homework:', error); }
 }
 
 // =========================================
@@ -632,6 +688,35 @@ function renderMaterials() {
                 </div>
                 <p class="material-description">${material.description || 'لا يوجد وصف'}</p>
                 <a href="material.html?id=${encodeURIComponent(material.id)}" target="_blank" class="btn-view-material" style="text-decoration: none; display: block; text-align: center;">فتح الشرح</a>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderHomework() {
+    const homeworkGrid = document.getElementById('homeworkGrid');
+
+    if (allHomework.length === 0) {
+        homeworkGrid.innerHTML = '<div class="loading-card">لا توجد واجبات حالياً</div>';
+        return;
+    }
+
+    const sortedHomework = [...allHomework].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    homeworkGrid.innerHTML = sortedHomework.map(hw => {
+        const typeIcon = hw.type === 'video' ? '🎥' : '📔';
+
+        return `
+            <div class="material-card">
+                <div class="material-header">
+                    <div class="material-icon">${typeIcon}</div>
+                    <div>
+                        <h3 class="material-title">${hw.title || 'بدون عنوان'}</h3>
+                        <div class="material-teacher">${hw.teacherName || 'غير محدد'} - ${hw.subject || 'غير محدد'}</div>
+                    </div>
+                </div>
+                <p class="material-description">${hw.description || 'لا يوجد وصف'}</p>
+                <a href="material.html?id=${encodeURIComponent(hw.id)}&col=homework" target="_blank" class="btn-view-material" style="text-decoration: none; display: block; text-align: center;">فتح الواجب</a>
             </div>
         `;
     }).join('');
